@@ -1,0 +1,15 @@
+[package]
+name = "tauri-plugin-aptabase"
+version = "0.0.1"
+description = "Tauri plugin for Aptabase Analytics"
+authors = [ "Guilherme Oenning" ]
+edition = "2021"
+rust-version = "1.59"
+exclude = ["/examples", "/webview-dist", "/webview-src", "node_modules"]
+readme = "README.md"
+repository = "https://github.com/aptabase/tauri-plugin-aptabase"
+
+[dependencies]
+tauri = "1"
+serde = "1.0"
+thiserror = "1.0"
