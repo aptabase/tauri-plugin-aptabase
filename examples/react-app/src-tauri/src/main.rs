@@ -3,16 +3,9 @@
     windows_subsystem = "windows"
 )]
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 fn main() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_aptabase::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .plugin(tauri_plugin_aptabase::init("A-EU-14982741824".into()))
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

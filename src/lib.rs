@@ -1,50 +1,27 @@
+mod error;
+mod config;
+mod state;
+mod commands;
+mod device;
 
-use serde::{ser::Serializer, Serialize};
+use config::Config;
+
+use state::AptabaseState;
 use tauri::{
-  command,
   plugin::{Builder, TauriPlugin},
-  AppHandle, Manager, Runtime, State, Window,
+    Runtime, Manager, 
 };
 
-use std::{collections::HashMap, sync::Mutex};
-
-type Result<T> = std::result::Result<T, Error>;
-
-#[derive(Debug, thiserror::Error)]
-pub enum Error {
-  #[error(transparent)]
-  Io(#[from] std::io::Error),
-}
-
-impl Serialize for Error {
-  fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.serialize_str(self.to_string().as_ref())
-  }
-}
-
-#[derive(Default)]
-struct MyState(Mutex<HashMap<String, String>>);
-
-#[command]
-async fn execute<R: Runtime>(
-  _app: AppHandle<R>,
-  _window: Window<R>,
-  state: State<'_, MyState>,
-) -> Result<String> {
-  println!("HERE");
-  state.0.lock().unwrap().insert("key".into(), "value".into());
-  Ok("success".to_string())
-}
 
 /// Initializes the plugin.
-pub fn init<R: Runtime>() -> TauriPlugin<R> {
+pub fn init<R: Runtime>(app_key: String) -> TauriPlugin<R> {
+  let cfg = Config::with_app_key(app_key);
+  let state = AptabaseState::with_config(cfg);
+
   Builder::new("aptabase")
-    .invoke_handler(tauri::generate_handler![execute])
+    .invoke_handler(tauri::generate_handler![commands::track_event])
     .setup(|app| {
-      app.manage(MyState::default());
+      app.manage(state);
       Ok(())
     })
     .build()

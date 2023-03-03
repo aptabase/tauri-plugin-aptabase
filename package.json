@@ -8,6 +8,7 @@
   "types": "webview-dist/index.d.ts",
   "scripts": {
     "build": "rollup -c ./webview-src/rollup.config.js",
+    "watch": "rollup -c ./webview-src/rollup.config.js -w",
     "prepublishOnly": "yarn build",
     "pretest": "yarn build"
   },

@@ -1,53 +1,37 @@
-import { useState } from "react";
 import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/tauri";
-import { execute2 } from 'tauri-plugin-aptabase-api'
+import { trackEvent } from 'tauri-plugin-aptabase-api'
 import "./App.css";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  function clickVite() {
+    trackEvent("logo_click")
+  }
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
+  function clickTauri() {
+    trackEvent("logo_click")
+  }
 
-    console.log('before execute')
-    execute2().then(console.log).catch(console.error)
-    console.log('after execute')
+  function clickReact() {
+    trackEvent("logo_click")
   }
 
   return (
     <div className="container">
-      <h1>Welcome to Tauri!</h1>
+      <h1>Welcome to Tauri + Aptabase Example!</h1>
 
       <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
+        <button onClick={clickVite}>
           <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
+        </button>
+        <button onClick={clickTauri}>
           <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
+        </button>
+        <button onClick={clickReact}>
           <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        </button>
       </div>
 
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <div className="row">
-        <div>
-          <input
-            id="greet-input"
-            onChange={(e) => setName(e.currentTarget.value)}
-            placeholder="Enter a name..."
-          />
-          <button type="button" onClick={() => greet()}>
-            Greet
-          </button>
-        </div>
-      </div>
-      <p>{greetMsg}</p>
+      <p>Click on the Tauri, Vite, and React logos to trigger an event.</p>
     </div>
   );
 }
