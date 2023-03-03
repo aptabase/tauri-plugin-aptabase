@@ -1,4 +1,4 @@
-use serde_json::json;
+use serde_json::{json, Value};
 use tauri::{
   command,
   AppHandle,  Runtime, Window, State,
@@ -15,6 +15,7 @@ type Result<T> = std::result::Result<T, Error>;
 #[command]
 pub async fn track_event<R: Runtime>(
   name: &str,
+  props: Option<Value>,
   _app: AppHandle<R>,
   _window: Window<R>,
   state: State<'_, AptabaseState>,
@@ -31,6 +32,7 @@ pub async fn track_event<R: Runtime>(
           "app_version": state.app_version,
           "sdk_version": format!("{}@{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
       },
+      "props": props
   });
 
   let body = json!({"events": vec![event]});

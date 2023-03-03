@@ -1,18 +1,19 @@
 import reactLogo from "./assets/react.svg";
 import { trackEvent } from 'tauri-plugin-aptabase-api'
 import "./App.css";
+import { useState } from "react";
 
 function App() {
   function clickVite() {
-    trackEvent("logo_click")
+    trackEvent("logo_click", { "logo": "vite", count: 1 })
   }
 
   function clickTauri() {
-    trackEvent("logo_click")
+    trackEvent("logo_click", { "logo": "tauri", count: 1 })
   }
 
   function clickReact() {
-    trackEvent("logo_click")
+    trackEvent("logo_click", { "logo": "react", count: 1 })
   }
 
   return (
