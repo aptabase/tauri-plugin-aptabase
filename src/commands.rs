@@ -1,4 +1,3 @@
-
 use serde_json::json;
 use tauri::{
   command,
@@ -10,43 +9,34 @@ use time::{
 
 use crate::state::AptabaseState;
 use crate::error::Error;
-use crate::device;
 
 type Result<T> = std::result::Result<T, Error>;
 
 #[command]
 pub async fn track_event<R: Runtime>(
   name: &str,
-  app: AppHandle<R>,
+  _app: AppHandle<R>,
   _window: Window<R>,
   state: State<'_, AptabaseState>,
 ) -> Result<()> {
-  let event_ts = OffsetDateTime::now_utc().format(&Rfc3339).unwrap();
-  let device_info = device::info();
-  let app_version = &app.package_info().version;
   let event = json!({
-      "timestamp": event_ts,
-      "session_id": "abc",
+      "timestamp": OffsetDateTime::now_utc().format(&Rfc3339).unwrap(),
+      "session_id": state.eval_session_id(),
       "event_name": name,
       "system_props": {
-          "os_family": device_info.os_family,
-          "os_name": device_info.os_family,
-          "os_version": device_info.os_version,
-          "os_locale": device_info.os_locale,
-          "app_version": app_version.to_string(),
-          "app_build_number": "",
+          "os_family": state.device_info.os_family,
+          "os_name": state.device_info.os_family,
+          "os_version": state.device_info.os_version,
+          "os_locale": state.device_info.os_locale,
+          "app_version": state.app_version,
           "sdk_version": format!("{}@{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
       },
   });
-  let body = json!({"events": vec![event]});
 
-  state.http_client.post(state.config.ingest_api_url.clone())
-    .json(&body)
-    .header("App-Key", state.config.app_key.clone())
-    .header("Content-Type", "application/json")
-    .send()
-    .await
-    .ok();
+  let body = json!({"events": vec![event]});
+  let url = state.config.ingest_api_url.clone();
+
+  state.http_client.post(url).json(&body).send().await.ok();
 
   Ok(())
 }

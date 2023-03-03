@@ -15,12 +15,13 @@ use tauri::{
 
 /// Initializes the plugin.
 pub fn init<R: Runtime>(app_key: String) -> TauriPlugin<R> {
-  let cfg = Config::with_app_key(app_key);
-  let state = AptabaseState::with_config(cfg);
 
   Builder::new("aptabase")
     .invoke_handler(tauri::generate_handler![commands::track_event])
     .setup(|app| {
+      let cfg = Config::with_app_key(app_key);
+      let app_version = app.package_info().version.to_string();
+      let state = AptabaseState::with_config(cfg, app_version);
       app.manage(state);
       Ok(())
     })

@@ -18,3 +18,4 @@ reqwest = { version ="0.11", features = ["json"] }
 time = { version ="0.3", features = ["formatting"]}
 os_info = "3"
 sys-locale = "0.2"
+uuid = "1"
