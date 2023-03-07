@@ -37,9 +37,11 @@ impl AptabaseState {
         headers.insert("App-Key", app_key_header);
         headers.insert("Content-Type", HeaderValue::from_static("application/json"));
 
+        let user_agent = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
         let http_client = reqwest::Client::builder()
             .timeout(HTTP_REQUEST_TIMEOUT)
             .default_headers(headers)
+            .user_agent(user_agent)
             .build()
             .expect("could not build http client");
 

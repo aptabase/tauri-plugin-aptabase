@@ -20,22 +20,21 @@ pub async fn track_event<R: Runtime>(
   _window: Window<R>,
   state: State<'_, AptabaseState>,
 ) -> Result<()> {
-  let event = json!({
+  let body = json!({
       "timestamp": OffsetDateTime::now_utc().format(&Rfc3339).unwrap(),
-      "session_id": state.eval_session_id(),
-      "event_name": name,
-      "system_props": {
-          "os_family": state.device_info.os_family,
-          "os_name": state.device_info.os_family,
-          "os_version": state.device_info.os_version,
-          "os_locale": state.device_info.os_locale,
-          "app_version": state.app_version,
-          "sdk_version": format!("{}@{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"))
+      "sessionId": state.eval_session_id(),
+      "eventName": name,
+      "systemProps": {
+          "osFamily": state.device_info.os_family,
+          "osName": state.device_info.os_family,
+          "osVersion": state.device_info.os_version,
+          "osLocale": state.device_info.os_locale,
+          "appVersion": state.app_version,
+          "sdkVersion": concat!(env!("CARGO_PKG_NAME"), "@", env!("CARGO_PKG_VERSION"))
       },
       "props": props
   });
 
-  let body = json!({"events": vec![event]});
   let url = state.config.ingest_api_url.clone();
 
   state.http_client.post(url).json(&body).send().await.ok();
