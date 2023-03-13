@@ -1,5 +1,6 @@
 use std::{sync::Mutex, time::Instant, time::Duration};
 use reqwest::header::{HeaderMap, HeaderValue};
+use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use crate::{config::Config, device::{Device, self}};
@@ -26,6 +27,7 @@ pub  struct AptabaseState {
     pub(crate) http_client: reqwest::Client,
     pub(crate) config: Config,
     pub app_version: String,
+    pub user_id: String,
     pub device_info: Device
 }
 
@@ -45,12 +47,16 @@ impl AptabaseState {
             .build()
             .expect("could not build http client");
 
+        let device_info = device::info();
+        let user_id = compute_user_id(&device_info.identifier, &config.app_key);
+
         AptabaseState {
             config,
             http_client,
             session: Mutex::new(SessionInfo::new()),
             app_version,
-            device_info: device::info(),
+            user_id,
+            device_info,
         }
     }
 
@@ -65,4 +71,13 @@ impl AptabaseState {
         }
         return session.id.clone()
     }
+}
+
+fn compute_user_id(device_id: &str, app_key: &str) -> String {
+    let hash = Sha256::new()
+        .chain_update(device_id.trim().to_lowercase())
+        .chain_update(app_key.trim().to_lowercase())
+        .finalize();
+    
+    return format!("{:x}", hash);
 }

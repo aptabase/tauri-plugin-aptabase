@@ -19,3 +19,5 @@ time = { version ="0.3", features = ["formatting"]}
 os_info = "3"
 sys-locale = "0.2"
 uuid = "1"
+machine-uid = "0.2"
+sha2 = "0.10"

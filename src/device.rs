@@ -7,6 +7,7 @@ static OS_FAMILY: &str = "Windows";
 
 
 pub struct Device {
+    pub identifier: String,
     pub os_family: String,
     pub os_name: String,
     pub os_version: String,
@@ -24,6 +25,7 @@ pub fn info() -> Device {
     };
 
     Device {
+        identifier: machine_uid::get().unwrap(),
         os_family: OS_FAMILY.to_string(),
         os_name,
         os_version: info.version().to_string(),

@@ -22,6 +22,7 @@ pub async fn track_event<R: Runtime>(
 ) -> Result<()> {
   let body = json!({
       "timestamp": OffsetDateTime::now_utc().format(&Rfc3339).unwrap(),
+      "userId": state.user_id,
       "sessionId": state.eval_session_id(),
       "eventName": name,
       "systemProps": {
@@ -38,6 +39,5 @@ pub async fn track_event<R: Runtime>(
   let url = state.config.ingest_api_url.clone();
 
   state.http_client.post(url).json(&body).send().await.ok();
-
   Ok(())
 }
