@@ -1,6 +1,7 @@
 use std::{sync::Mutex, time::Instant, time::Duration};
 use reqwest::header::{HeaderMap, HeaderValue};
 use sha2::{Digest, Sha256};
+use time::OffsetDateTime;
 use uuid::Uuid;
 
 use crate::{config::Config, device::{Device, self}};
@@ -8,22 +9,25 @@ use crate::{config::Config, device::{Device, self}};
 static SESSION_TIMEOUT: Duration = Duration::from_secs(4 * 60 * 60);
 static HTTP_REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 
-struct SessionInfo {
-    id: String,
-    last_touch_ts: Instant
+#[derive(Debug, Clone)]
+pub struct TrackingSession {
+    pub id: String,
+    pub started_at: OffsetDateTime,
+    pub last_touch_ts: Instant
 }
 
-impl SessionInfo {
+impl TrackingSession {
     fn new() -> Self { 
-        SessionInfo {
+        TrackingSession {
             id: Uuid::new_v4().to_string(),
+            started_at: OffsetDateTime::now_local().unwrap_or(OffsetDateTime::now_utc()),
             last_touch_ts: Instant::now(),
         }
      }
 }
 
 pub  struct AptabaseState {
-    session: Mutex<SessionInfo>,
+    session: Mutex<TrackingSession>,
     pub(crate) http_client: reqwest::Client,
     pub(crate) config: Config,
     pub app_version: String,
@@ -53,23 +57,23 @@ impl AptabaseState {
         AptabaseState {
             config,
             http_client,
-            session: Mutex::new(SessionInfo::new()),
+            session: Mutex::new(TrackingSession::new()),
             app_version,
             user_id,
             device_info,
         }
     }
 
-    pub(crate) fn eval_session_id(&self) -> String {
+    pub(crate) fn eval_session(&self) -> TrackingSession {
         let mut session = self.session.lock().expect("could not lock session");
 
         // session timeout since last touched, start a new one!
         if session.last_touch_ts.elapsed() > SESSION_TIMEOUT {
-            *session = SessionInfo::new()
+            *session = TrackingSession::new()
         } else {
             session.last_touch_ts = Instant::now()
         }
-        return session.id.clone()
+        return session.clone();
     }
 }
 

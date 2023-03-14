@@ -20,10 +20,15 @@ pub async fn track_event<R: Runtime>(
   _window: Window<R>,
   state: State<'_, AptabaseState>,
 ) -> Result<()> {
+
+  let session = state.eval_session();
   let body = json!({
       "timestamp": OffsetDateTime::now_utc().format(&Rfc3339).unwrap(),
       "userId": state.user_id,
-      "sessionId": state.eval_session_id(),
+      "session": {
+        "id": session.id,
+        "startedAt": session.started_at.format(&Rfc3339).unwrap(),
+      },
       "eventName": name,
       "systemProps": {
           "osFamily": state.device_info.os_family,
