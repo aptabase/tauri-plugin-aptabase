@@ -20,7 +20,7 @@ impl TrackingSession {
     fn new() -> Self { 
         TrackingSession {
             id: Uuid::new_v4().to_string(),
-            started_at: OffsetDateTime::now_local().unwrap_or(OffsetDateTime::now_utc()),
+            started_at: OffsetDateTime::now_utc(),
             last_touch_ts: Instant::now(),
         }
      }
