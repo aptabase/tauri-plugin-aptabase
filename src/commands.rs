@@ -31,8 +31,7 @@ pub async fn track_event<R: Runtime>(
       },
       "eventName": name,
       "systemProps": {
-          "osFamily": state.device_info.os_family,
-          "osName": state.device_info.os_family,
+          "osName": state.device_info.os_name,
           "osVersion": state.device_info.os_version,
           "osLocale": state.device_info.os_locale,
           "appVersion": state.app_version,
