@@ -1,7 +1,6 @@
 import reactLogo from "./assets/react.svg";
 import { trackEvent } from 'tauri-plugin-aptabase-api'
 import "./App.css";
-import { useState } from "react";
 
 function App() {
   function clickVite() {
