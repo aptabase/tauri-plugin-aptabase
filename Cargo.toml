@@ -1,13 +1,14 @@
 [package]
 name = "tauri-plugin-aptabase"
-version = "0.0.1"
+version = "0.1.0"
+license-file = "LICENSE"
 description = "Tauri plugin for Aptabase Analytics"
 authors = [ "Guilherme Oenning" ]
 edition = "2021"
 rust-version = "1.59"
-exclude = ["/examples", "/webview-dist", "/webview-src", "node_modules"]
 readme = "README.md"
 repository = "https://github.com/aptabase/tauri-plugin-aptabase"
+exclude = ["/examples", "/webview-dist", "/webview-src", "node_modules"]
 
 [dependencies]
 tauri = "1"
