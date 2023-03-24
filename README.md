@@ -53,4 +53,4 @@ A few important notes:
 
 1. You do not need to await the `trackEvent` function, it'll run in the background.
 2. You're in control of what gets sent to Aptabase. This plugin does not automatically track any events, you need to call `trackEvent` manually.
-    - It's generally recommended to track an event at start-up, so you can see how many users are using your app.
+3. It's generally recommended to track an event at start-up, so you can see how many users are using your app.

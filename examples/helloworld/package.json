@@ -14,7 +14,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "@tauri-apps/api": "^1.2.0",
-    "tauri-plugin-aptabase-api": "file:../../"
+    "@aptabase/tauri": "file:../../"
   },
   "devDependencies": {
     "@types/node": "^18.7.10",

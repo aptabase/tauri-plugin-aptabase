@@ -1,5 +1,5 @@
 import reactLogo from "./assets/react.svg";
-import { trackEvent } from 'tauri-plugin-aptabase-api'
+import { trackEvent } from '@aptabase/tauri'
 import "./App.css";
 
 function App() {
