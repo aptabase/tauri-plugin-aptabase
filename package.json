@@ -1,6 +1,7 @@
 {
   "name": "@aptabase/tauri",
   "version": "0.1.0",
+  "private": false,
   "description": "Tauri plugin for Aptabase Analytics",
   "author": "Guilherme Oenning",
   "browser": "webview-dist/index.js",
@@ -12,6 +13,12 @@
     "prepublishOnly": "yarn build",
     "pretest": "yarn build"
   },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "webview-dist",
+    "package.json"
+  ],
   "devDependencies": {
     "@rollup/plugin-node-resolve": "15.0.1",
     "@rollup/plugin-typescript": "11.0.0",
