@@ -6,20 +6,28 @@ pub struct Config {
     pub ingest_api_url: Url,
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            app_key: "".to_owned(),
-            ingest_api_url: "http://localhost:5251/v0/event".parse().unwrap(),
-        }
-    }
-}
+static LOCAL: &str = "http://localhost:5251";
+static US_REGION: &str = "https://api-eu.aptabase.com";
+static EU_REGION: &str = "https://api-eu.aptabase.com";
+
 
 impl Config {
     pub fn with_app_key(app_key: String) -> Self {
+        let parts = app_key.split("-").collect::<Vec<&str>>();
+        if parts.len() != 3 {
+            panic!("Invalid Aptabase App Key format");
+        }
+
+        let base_url = match parts[1] {
+            "EU" => EU_REGION,
+            "US" => US_REGION,
+            "DEV" => LOCAL,
+            _ => LOCAL,
+        };
+
         Config {
             app_key,
-            ingest_api_url: "http://localhost:5251/v0/event".parse().unwrap(),
+            ingest_api_url: format!("{}/v0/event", base_url).parse().unwrap(),
         }
     }
 }
