@@ -2,7 +2,7 @@ mod error;
 mod config;
 mod state;
 mod commands;
-mod device;
+mod sys;
 
 use config::Config;
 

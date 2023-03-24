@@ -14,10 +14,11 @@ tauri = "1"
 serde = "1.0"
 serde_json = "1.0"
 thiserror = "1.0"
-reqwest = { version ="0.11", features = ["json"] }
-time = { version ="0.3", features = ["formatting"]}
+reqwest = { version = "0.11", features = ["json"] }
+time = { version = "0.3", features = ["formatting"]}
 os_info = "3"
 sys-locale = "0.2"
 uuid = "1"
 machine-uid = "0.2"
 sha2 = "0.10"
+wry = "0"

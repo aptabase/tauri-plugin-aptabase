@@ -31,9 +31,13 @@ pub async fn track_event<R: Runtime>(
       },
       "eventName": name,
       "systemProps": {
-          "osName": state.device_info.os_name,
-          "osVersion": state.device_info.os_version,
-          "osLocale": state.device_info.os_locale,
+          "osName": state.sys_info.os_name,
+          "osVersion": state.sys_info.os_version,
+          "locale": state.sys_info.locale,
+          "frameworkName": state.sys_info.framework_name,
+          "frameworkVersion": state.sys_info.framework_version,
+          "engineName": state.sys_info.engine_name,
+          "engineVersion": state.sys_info.engine_version,
           "appVersion": state.app_version,
           "sdkVersion": concat!(env!("CARGO_PKG_NAME"), "@", env!("CARGO_PKG_VERSION"))
       },

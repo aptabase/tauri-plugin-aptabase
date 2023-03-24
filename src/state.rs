@@ -4,7 +4,7 @@ use sha2::{Digest, Sha256};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-use crate::{config::Config, device::{Device, self}};
+use crate::{config::Config, sys::{SystemProperties, self}};
 
 static SESSION_TIMEOUT: Duration = Duration::from_secs(4 * 60 * 60);
 static HTTP_REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
@@ -26,13 +26,13 @@ impl TrackingSession {
      }
 }
 
-pub  struct AptabaseState {
+pub struct AptabaseState {
     session: Mutex<TrackingSession>,
     pub(crate) http_client: reqwest::Client,
     pub(crate) config: Config,
     pub app_version: String,
     pub user_id: String,
-    pub device_info: Device
+    pub sys_info: SystemProperties
 }
 
 
@@ -51,8 +51,8 @@ impl AptabaseState {
             .build()
             .expect("could not build http client");
 
-        let device_info = device::info();
-        let user_id = compute_user_id(&device_info.identifier, &config.app_key);
+        let sys_info = sys::get_info();
+        let user_id = compute_user_id(&sys_info.identifier, &config.app_key);
 
         AptabaseState {
             config,
@@ -60,7 +60,7 @@ impl AptabaseState {
             session: Mutex::new(TrackingSession::new()),
             app_version,
             user_id,
-            device_info,
+            sys_info,
         }
     }
 
