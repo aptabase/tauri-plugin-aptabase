@@ -1,6 +1,6 @@
 {
   "name": "@aptabase/tauri",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "description": "Tauri plugin for Aptabase Analytics",
   "author": "Guilherme Oenning",
@@ -28,7 +28,7 @@
     "tslib": "2.5.0",
     "@tauri-apps/api": "1.2.0"
   },
-  "peerDependencies": {
-    "@tauri-apps/api": "1.x"
+  "dependencies": {
+    "@tauri-apps/api": "^1.0.0"
   }
 }
