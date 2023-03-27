@@ -34,7 +34,7 @@ Then you need to register the core plugin with Tauri:
 ```rust
 fn main() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_aptabase::init("<YOUR_APP_KEY_GOES_HERE>".into()))
+        .plugin(tauri_plugin_aptabase::init("<YOUR_APP_KEY>".into())) // 👈 this is where you enter your App Key
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
