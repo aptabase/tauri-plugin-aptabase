@@ -1,7 +1,5 @@
 use std::{sync::Mutex, time::Instant, time::Duration};
 use reqwest::header::{HeaderMap, HeaderValue};
-use sha2::{Digest, Sha256};
-use time::OffsetDateTime;
 use uuid::Uuid;
 
 use crate::{config::Config, sys::{SystemProperties, self}};
@@ -12,7 +10,6 @@ static HTTP_REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 #[derive(Debug, Clone)]
 pub struct TrackingSession {
     pub id: String,
-    pub started_at: OffsetDateTime,
     pub last_touch_ts: Instant
 }
 
@@ -20,7 +17,6 @@ impl TrackingSession {
     fn new() -> Self { 
         TrackingSession {
             id: Uuid::new_v4().to_string(),
-            started_at: OffsetDateTime::now_utc(),
             last_touch_ts: Instant::now(),
         }
      }
@@ -31,7 +27,6 @@ pub struct AptabaseState {
     pub(crate) http_client: reqwest::Client,
     pub(crate) config: Config,
     pub app_version: String,
-    pub user_id: String,
     pub sys_info: SystemProperties
 }
 
@@ -52,19 +47,17 @@ impl AptabaseState {
             .expect("could not build http client");
 
         let sys_info = sys::get_info();
-        let user_id = compute_user_id(&sys_info.identifier, &config.app_key);
 
         AptabaseState {
             config,
             http_client,
             session: Mutex::new(TrackingSession::new()),
             app_version,
-            user_id,
             sys_info,
         }
     }
 
-    pub(crate) fn eval_session(&self) -> TrackingSession {
+    pub(crate) fn eval_session_id(&self) -> String {
         let mut session = self.session.lock().expect("could not lock session");
 
         // session timeout since last touched, start a new one!
@@ -73,15 +66,6 @@ impl AptabaseState {
         } else {
             session.last_touch_ts = Instant::now()
         }
-        return session.clone();
+        return session.id.clone();
     }
-}
-
-fn compute_user_id(device_id: &str, app_key: &str) -> String {
-    let hash = Sha256::new()
-        .chain_update(device_id.trim().to_lowercase())
-        .chain_update(app_key.trim().to_lowercase())
-        .finalize();
-    
-    return format!("{:x}", hash);
 }

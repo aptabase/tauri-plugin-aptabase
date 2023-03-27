@@ -10,7 +10,6 @@ static ENGINE_NAME: &str = "WebKit";
 static ENGINE_NAME: &str = "WebView2";
 
 pub struct SystemProperties {
-    pub identifier: String,
     pub os_name: String,
     pub os_version: String,
     pub locale: String,
@@ -32,7 +31,6 @@ pub fn get_info() -> SystemProperties {
     };
 
     SystemProperties {
-        identifier: machine_uid::get().unwrap(),
         os_name,
         os_version: info.version().to_string(),
         locale,
