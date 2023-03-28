@@ -7,7 +7,7 @@ pub struct Config {
 }
 
 static LOCAL: &str = "http://localhost:5251";
-static US_REGION: &str = "https://api-eu.aptabase.com";
+static US_REGION: &str = "https://api-us.aptabase.com";
 static EU_REGION: &str = "https://api-eu.aptabase.com";
 
 
