@@ -29,8 +29,6 @@ pub async fn track_event<R: Runtime>(
           "osName": state.sys_info.os_name,
           "osVersion": state.sys_info.os_version,
           "locale": state.sys_info.locale,
-          "frameworkName": state.sys_info.framework_name,
-          "frameworkVersion": state.sys_info.framework_version,
           "engineName": state.sys_info.engine_name,
           "engineVersion": state.sys_info.engine_version,
           "appVersion": state.app_version,

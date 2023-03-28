@@ -13,8 +13,6 @@ pub struct SystemProperties {
     pub os_name: String,
     pub os_version: String,
     pub locale: String,
-    pub framework_name: String,
-    pub framework_version: String,
     pub engine_name: String,
     pub engine_version: String,
 }
@@ -34,8 +32,6 @@ pub fn get_info() -> SystemProperties {
         os_name,
         os_version: info.version().to_string(),
         locale,
-        framework_name: "Tauri".to_string(),
-        framework_version: "".to_string(), // TODO: depends on https://github.com/tauri-apps/tauri/pull/6546
         engine_name: ENGINE_NAME.to_string(),
         engine_version,
     }
