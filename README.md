@@ -51,7 +51,8 @@ trackEvent("play_music", { name: "Here comes the sun" }) // An event with a cust
 
 A few important notes:
 
-1. You do not need to await the `trackEvent` function, it'll run in the background.
+1. The plugin will automatically enhance the event with some useful information, like the OS, the app version, and other things.
 2. You're in control of what gets sent to Aptabase. This plugin does not automatically track any events, you need to call `trackEvent` manually.
-3. It's generally recommended to track an event at start-up, so you can see how many users are using your app.
-4. The plugin will automatically enhance the event with some useful information, like the OS, the app version, and other things.
+    - Because of this, it's generally recommended to at least track an event at startup
+3. You do not need to await the `trackEvent` function, it'll run in the background.
+3. Only strings and numbers values are allowed on custom properties
