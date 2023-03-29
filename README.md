@@ -25,7 +25,7 @@ yarn add @aptabase/tauri
 
 ## Usage
 
-First you need to get your App Key from Aptabase, you can find it in the `Instructions` menu on the left side of the Aptabase menu.
+First you need to get your `App Key` from Aptabase, you can find it in the `Instructions` menu on the left side menu.
 
 Then you need to register the core plugin with Tauri:
 
