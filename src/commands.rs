@@ -1,3 +1,4 @@
+use log::debug;
 use serde_json::{json, Value};
 use tauri::{
   command,
@@ -21,6 +22,10 @@ pub async fn track_event<R: Runtime>(
   state: State<'_, AptabaseState>,
 ) -> Result<()> {
 
+  if state.config.app_key.is_empty() {
+    return Ok(());
+  }
+
   let body = json!({
       "timestamp": OffsetDateTime::now_utc().format(&Rfc3339).unwrap(),
       "sessionId": state.eval_session_id(),
@@ -39,6 +44,16 @@ pub async fn track_event<R: Runtime>(
 
   let url = state.config.ingest_api_url.clone();
 
-  state.http_client.post(url).json(&body).send().await.ok();
+  let response = state.http_client.post(url).json(&body).send().await;
+  match response {
+      Ok(response) => {
+          if !response.status().is_success() {
+            debug!("failed to track_event with status code {}", response.status());
+          }
+      }
+      Err(err) => {
+        debug!("failed to track_event: {}", err.to_string());
+      }
+  }
   Ok(())
 }

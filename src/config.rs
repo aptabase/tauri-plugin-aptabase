@@ -1,3 +1,4 @@
+use log::debug;
 use reqwest::Url;
 
 #[derive(Debug, Clone)]
@@ -15,7 +16,8 @@ impl Config {
     pub fn with_app_key(app_key: String) -> Self {
         let parts = app_key.split("-").collect::<Vec<&str>>();
         if parts.len() != 3 {
-            panic!("Invalid Aptabase App Key format");
+            debug!("The Aptabase App Key '{}' is invalid. Tracking will be disabled.", app_key);
+            return Config::default();
         }
 
         let base_url = match parts[1] {
@@ -29,5 +31,14 @@ impl Config {
             app_key,
             ingest_api_url: format!("{}/v0/event", base_url).parse().unwrap(),
         }
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        return Config {
+            app_key: String::new(),
+            ingest_api_url: Url::parse(LOCAL).unwrap(),
+        };
     }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "tauri-plugin-aptabase"
-version = "0.1.2"
+version = "0.1.3"
 license = "MIT"
 description = "Tauri plugin for Aptabase Analytics"
 authors = [ "Guilherme Oenning" ]
@@ -21,3 +21,4 @@ os_info = "3"
 sys-locale = "0.2"
 uuid = "1"
 wry = "0"
+log = "0.4"
