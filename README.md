@@ -1,4 +1,4 @@
-![Aptabase](https://aptabase.com/og.png
+![Aptabase](https://aptabase.com/og.png)
 
 # Tauri Plugin for Aptabase
 
