@@ -1,12 +1,20 @@
 {
   "name": "@aptabase/tauri",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": false,
   "description": "Tauri plugin for Aptabase Analytics",
   "author": "Guilherme Oenning",
   "browser": "webview-dist/index.js",
   "main": "webview-dist/index.js",
   "types": "webview-dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aptabase/tauri-plugin-aptabase.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aptabase/tauri-plugin-aptabase/issues"
+  },
+  "homepage": "https://github.com/aptabase/tauri-plugin-aptabase",
   "scripts": {
     "build": "rollup -c ./webview-src/rollup.config.js",
     "watch": "rollup -c ./webview-src/rollup.config.js -w",
