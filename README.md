@@ -1,3 +1,5 @@
+<img src="https://aptabase.com/og.png" alt="Aptabase"/>
+
 # Tauri Plugin for Aptabase
 
 This plugin allows you to instrument your app with events that can be analyzed in Aptabase, a privacy-first analytics platform for Desktop and Mobile apps.
@@ -31,10 +33,10 @@ Then you need to register the core plugin with Tauri:
 
 `src-tauri/src/main.rs`
 
-```diff
+```rust
 fn main() {
     tauri::Builder::default()
-+       .plugin(tauri_plugin_aptabase::init("<YOUR_APP_KEY>".into())) // 👈 this is where you enter your App Key
+        .plugin(tauri_plugin_aptabase::init("<YOUR_APP_KEY>".into())) // 👈 this is where you enter your App Key
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
