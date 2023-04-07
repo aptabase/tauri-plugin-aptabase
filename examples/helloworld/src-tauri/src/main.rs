@@ -3,8 +3,8 @@
     windows_subsystem = "windows"
 )]
 
-use tauri_plugin_log::{LogTarget};
-
+use tauri_plugin_log::LogTarget;
+use tauri_plugin_aptabase::EventTracker;
 
 fn main() {
     tauri::Builder::default()
@@ -14,6 +14,10 @@ fn main() {
             LogTarget::Stdout,
             LogTarget::Webview,
         ]).build())
+        .setup(|app| {
+            app.track_event("app_started", None);
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

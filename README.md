@@ -42,7 +42,25 @@ fn main() {
 }
 ```
 
-Afterwards all the plugin's APIs are available through the JavaScript guest bindings:
+You can then start sending events from Rust by importing the `tauri_plugin_aptabase::EventTracker` trait and calling the `track_event` method on a `App`, `AppHandle` or `Window`. For the app started event for example, you could do this:
+
+
+```rust
+use tauri_plugin_aptabase::EventTracker;
+
+fn main() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_aptabase::init("<YOUR_APP_KEY>".into()))
+        .setup(|app| {
+            app.track_event("app_started", None);
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+```
+
+The `trackEvent` function is also available through the JavaScript guest bindings:
 
 ```js
 import { trackEvent } from "@aptabase/tauri";
