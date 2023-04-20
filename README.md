@@ -2,7 +2,7 @@
 
 # Tauri Plugin for Aptabase
 
-This plugin allows you to instrument your app with events that can be analyzed in Aptabase, a privacy-first analytics platform for Desktop and Mobile apps.
+This plugin allows you to instrument your app with events that can be analyzed in Aptabase, an Open Source, Privacy-First and Simple Analytics for Mobile, Desktop and Web Apps.
 
 ## Install
 
