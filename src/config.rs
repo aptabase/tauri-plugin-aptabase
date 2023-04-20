@@ -7,9 +7,9 @@ pub struct Config {
     pub ingest_api_url: Url,
 }
 
-static LOCAL: &str = "http://localhost:5251";
-static US_REGION: &str = "https://api-us.aptabase.com";
-static EU_REGION: &str = "https://api-eu.aptabase.com";
+static LOCAL: &str = "http://localhost:3000";
+static US_REGION: &str = "https://us.aptabase.com";
+static EU_REGION: &str = "https://eu.aptabase.com";
 
 
 impl Config {
@@ -29,7 +29,7 @@ impl Config {
 
         Config {
             app_key,
-            ingest_api_url: format!("{}/v0/event", base_url).parse().unwrap(),
+            ingest_api_url: format!("{}/api/v0/event", base_url).parse().unwrap(),
         }
     }
 }
