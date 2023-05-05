@@ -8,7 +8,7 @@ use tauri_plugin_aptabase::EventTracker;
 
 fn main() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_aptabase::init("A-DEV-0000000000".into()))
+        .plugin(tauri_plugin_aptabase::Builder::new("A-DEV-0000000000").build())
         .plugin(tauri_plugin_log::Builder::default().targets([
             LogTarget::LogDir,
             LogTarget::Stdout,
