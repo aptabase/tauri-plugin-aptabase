@@ -40,7 +40,7 @@ impl Builder {
     pub fn build<R: Runtime>(self) -> TauriPlugin<R> {
       plugin::Builder::new("aptabase")
         .invoke_handler(tauri::generate_handler![commands::track_event])
-        .setup(|app| {
+        .setup(|app, _plugin| {
           let cfg = Config::new(self.app_key, self.options.host);
           let app_version = app.package_info().version.to_string();
           let state = AptabaseState::with_config(cfg, app_version);
