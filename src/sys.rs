@@ -9,7 +9,15 @@ static ENGINE_NAME: &str = "WebKit";
 #[cfg(target_os = "windows")]
 static ENGINE_NAME: &str = "WebView2";
 
+
+#[cfg(debug_assertions)]
+static IS_DEBUG: bool = true;
+
+#[cfg(not(debug_assertions))]
+static IS_DEBUG: bool = false;
+
 pub struct SystemProperties {
+    pub is_debug: bool,
     pub os_name: String,
     pub os_version: String,
     pub locale: String,
@@ -29,6 +37,7 @@ pub fn get_info() -> SystemProperties {
     };
 
     SystemProperties {
+        is_debug: IS_DEBUG,
         os_name,
         os_version: info.version().to_string(),
         locale,
