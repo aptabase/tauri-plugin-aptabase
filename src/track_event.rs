@@ -18,6 +18,7 @@ pub fn internal_track_event(
       "sessionId": state.eval_session_id(),
       "eventName": name,
       "systemProps": {
+          "isDebug": state.sys_info.is_debug,
           "osName": state.sys_info.os_name,
           "osVersion": state.sys_info.os_version,
           "locale": state.sys_info.locale,
