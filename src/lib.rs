@@ -3,7 +3,7 @@ mod client;
 mod commands;
 mod sys;
 
-use std::{sync::Arc, panic::PanicInfo};
+use std::{sync::Arc, panic::PanicInfo, time::Duration, thread};
 
 use config::Config;
 use serde_json::Value;
@@ -59,6 +59,10 @@ impl Builder {
             let hook_client = client.clone();
             std::panic::set_hook(Box::new(move |info| {
               hook(&hook_client, info);
+
+              // Wait 2sec to give time for the thread to send the event
+              // This can be removed when we move to Background Queue + Flush
+              thread::sleep(Duration::from_millis(2000));
             }));
           }
 
