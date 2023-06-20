@@ -1,3 +1,7 @@
+## 0.3.0
+
+* Add ability for panic hook to log panics to aptabase
+
 ## 0.2.1
 
 * Added support for automatic segregation of Debug/Release data source

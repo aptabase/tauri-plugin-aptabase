@@ -1,6 +1,7 @@
 import reactLogo from "./assets/react.svg";
 import { trackEvent } from '@aptabase/tauri'
 import "./App.css";
+import { invoke } from "@tauri-apps/api";
 
 function App() {
   function clickVite() {
@@ -13,6 +14,10 @@ function App() {
 
   function clickReact() {
     trackEvent("logo_click", { "logo": "react", count: 1 })
+  }
+
+  function panic() {
+    invoke("this_will_panic")
   }
 
   return (
@@ -32,6 +37,10 @@ function App() {
       </div>
 
       <p>Click on the Tauri, Vite, and React logos to trigger an event.</p>
+
+      <div>
+        <button onClick={panic}>PANIC!</button>
+      </div>
     </div>
   );
 }

@@ -1,14 +1,15 @@
+use std::sync::Arc;
+
 use serde_json::Value;
 use tauri::{command, State};
 
-use crate::state::AptabaseState;
-use crate::track_event::internal_track_event;
+use crate::client::AptabaseClient;
 
 #[command]
 pub fn track_event(
-  state: State<'_, AptabaseState>,
+  client: State<'_, Arc<AptabaseClient>>,
   name: &str,
   props: Option<Value>,
 ) {
-  internal_track_event(state, name, props)
+  client.track_event(name, props)
 }

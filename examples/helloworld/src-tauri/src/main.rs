@@ -5,10 +5,21 @@
 
 use tauri_plugin_log::LogTarget;
 use tauri_plugin_aptabase::EventTracker;
+use serde_json::json;
+
+#[tauri::command]
+fn this_will_panic() {
+  panic!("I told you so!");
+}
 
 fn main() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_aptabase::Builder::new("A-DEV-0000000000").build())
+    .invoke_handler(tauri::generate_handler![this_will_panic])
+        .plugin(tauri_plugin_aptabase::Builder::new("A-DEV-0000000000").with_panic_hook(Box::new(|client, info| {
+            client.track_event("panic", Some(json!({
+                "info": format!("{:?}", info),
+            })));
+        })).build())
         .plugin(tauri_plugin_log::Builder::default().targets([
             LogTarget::LogDir,
             LogTarget::Stdout,
