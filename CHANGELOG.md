@@ -1,3 +1,7 @@
+## 0.3.1
+
+* Wait for event to be flushed on panic
+
 ## 0.3.0
 
 * Add ability for panic hook to log panics to aptabase
