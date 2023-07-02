@@ -11,13 +11,6 @@
     "version": "0.0.0"
   },
   "tauri": {
-    "allowlist": {
-      "all": false,
-      "shell": {
-        "all": false,
-        "open": true
-      }
-    },
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
@@ -53,9 +46,6 @@
     },
     "security": {
       "csp": null
-    },
-    "updater": {
-      "active": false
     },
     "windows": [
       {
