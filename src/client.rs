@@ -1,7 +1,7 @@
 use log::debug;
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde_json::{json, Value};
-use std::{sync::Mutex, time::Duration, time::Instant};
+use std::{sync::Mutex, time::Duration};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use uuid::Uuid;
 
@@ -16,14 +16,14 @@ static HTTP_REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 #[derive(Debug, Clone)]
 pub struct TrackingSession {
     pub id: String,
-    pub last_touch_ts: Instant,
+    pub last_touch_ts: OffsetDateTime,
 }
 
 impl TrackingSession {
     fn new() -> Self {
         TrackingSession {
             id: Uuid::new_v4().to_string(),
-            last_touch_ts: Instant::now(),
+            last_touch_ts: OffsetDateTime::now_utc(),
         }
     }
 }
@@ -66,11 +66,11 @@ impl AptabaseClient {
     pub(crate) fn eval_session_id(&self) -> String {
         let mut session = self.session.lock().expect("could not lock session");
 
-        // session timeout since last touched, start a new one!
-        if session.last_touch_ts.elapsed() > SESSION_TIMEOUT {
-            *session = TrackingSession::new()
+        let now = OffsetDateTime::now_utc();
+        if (now - session.last_touch_ts) > SESSION_TIMEOUT {
+            *session = TrackingSession::new();
         } else {
-            session.last_touch_ts = Instant::now()
+            session.last_touch_ts = now;
         }
         return session.id.clone();
     }

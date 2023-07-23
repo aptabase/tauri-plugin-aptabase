@@ -1,3 +1,7 @@
+## 0.3.2
+
+* (macOS) Fixed an issue where sessions could span multiple days if the app was left open overnight
+
 ## 0.3.1
 
 * Wait for event to be flushed on panic
