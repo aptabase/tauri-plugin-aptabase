@@ -1,5 +1,4 @@
 use std::sync::Arc;
-
 use serde_json::Value;
 use tauri::{command, State};
 
@@ -11,5 +10,5 @@ pub fn track_event(
   name: &str,
   props: Option<Value>,
 ) {
-  client.track_event(name, props)
+  client.track_event(name, props);
 }

@@ -1,4 +1,4 @@
-use wry::webview;
+use tauri::{api::os::locale, webview_version};
 
 #[cfg(target_os = "linux")]
 static ENGINE_NAME: &str = "WebKitGTK";
@@ -27,8 +27,8 @@ pub struct SystemProperties {
 
 pub fn get_info() -> SystemProperties {
     let info = os_info::get();
-    let locale = sys_locale::get_locale().unwrap_or_default();
-    let engine_version = webview::webview_version().unwrap_or_default();
+    let locale = locale().unwrap_or_default();
+    let engine_version = webview_version().unwrap_or_default();
 
     let os_name = match info.os_type() {
         os_info::Type::Macos => "macOS".to_string(),

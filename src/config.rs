@@ -38,7 +38,7 @@ impl Config {
 
         Config {
             app_key,
-            ingest_api_url: format!("{}/api/v0/event", base_url).parse().unwrap(),
+            ingest_api_url: format!("{}/api/v0/events", base_url).parse().unwrap(),
         }
     }
 }

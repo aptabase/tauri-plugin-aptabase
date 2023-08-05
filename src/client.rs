@@ -1,17 +1,14 @@
-use log::debug;
-use reqwest::header::{HeaderMap, HeaderValue};
 use serde_json::{json, Value};
-use std::{sync::Mutex, time::Duration};
+use std::{sync::{Arc, Mutex as SyncMutex}, time::Duration};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use uuid::Uuid;
 
 use crate::{
     config::Config,
-    sys::{self, SystemProperties},
+    sys::{self, SystemProperties}, dispatcher::EventDispatcher,
 };
 
 static SESSION_TIMEOUT: Duration = Duration::from_secs(4 * 60 * 60);
-static HTTP_REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Debug, Clone)]
 pub struct TrackingSession {
@@ -29,42 +26,42 @@ impl TrackingSession {
 }
 
 pub struct AptabaseClient {
-    session: Mutex<TrackingSession>,
-    pub(crate) http_client: reqwest::Client,
-    pub(crate) config: Config,
-    pub app_version: String,
-    pub sys_info: SystemProperties,
+    is_enabled: bool,
+    session: SyncMutex<TrackingSession>,
+    dispatcher: Arc<EventDispatcher>,
+    app_version: String,
+    sys_info: SystemProperties,
 }
 
 impl AptabaseClient {
-    pub fn with_config(config: Config, app_version: String) -> Self {
-        let mut headers = HeaderMap::new();
-        let app_key_header = HeaderValue::from_str(config.app_key.as_str())
-            .expect("failed to define App Key header value");
-        headers.insert("App-Key", app_key_header);
-        headers.insert("Content-Type", HeaderValue::from_static("application/json"));
-
-        let user_agent = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
-        let http_client = reqwest::Client::builder()
-            .timeout(HTTP_REQUEST_TIMEOUT)
-            .default_headers(headers)
-            .user_agent(user_agent)
-            .build()
-            .expect("could not build http client");
-
+    pub fn new(config: Config, app_version: String) -> Self {
         let sys_info = sys::get_info();
 
+        let is_enabled = !config.app_key.is_empty();
+        let dispatcher = Arc::new(EventDispatcher::new(config));
+
         AptabaseClient {
-            config,
-            http_client,
-            session: Mutex::new(TrackingSession::new()),
+            is_enabled,
+            dispatcher,
+            session: SyncMutex::new(TrackingSession::new()),
             app_version,
             sys_info,
         }
     }
 
+    pub(crate) fn start_polling(&self) {
+        let dispatcher = self.dispatcher.clone();
+
+        tauri::async_runtime::spawn(async move {
+            loop {
+                tokio::time::sleep(Duration::from_secs(5)).await;
+                dispatcher.flush().await;
+            }
+        });
+    }
+
     pub(crate) fn eval_session_id(&self) -> String {
-        let mut session = self.session.lock().expect("could not lock session");
+        let mut session = self.session.lock().expect("could not lock events");
 
         let now = OffsetDateTime::now_utc();
         if (now - session.last_touch_ts) > SESSION_TIMEOUT {
@@ -76,10 +73,11 @@ impl AptabaseClient {
     }
 
     pub fn track_event(&self, name: &str, props: Option<Value>) {
-        if self.config.app_key.is_empty() {
+        if !self.is_enabled {
             return;
         }
-        let body = json!({
+
+        let ev = json!({
             "timestamp": OffsetDateTime::now_utc().format(&Rfc3339).unwrap(),
             "sessionId": self.eval_session_id(),
             "eventName": name,
@@ -96,24 +94,16 @@ impl AptabaseClient {
             "props": props
         });
 
-        let url = self.config.ingest_api_url.clone();
-        let http_client = self.http_client.clone();
+        self.dispatcher.enqueue(ev);
+    }
 
-        tauri::async_runtime::spawn(async move {
-            let response = http_client.post(url).json(&body).send().await;
-            match response {
-                Ok(response) => {
-                    if !response.status().is_success() {
-                        debug!(
-                            "failed to track_event with status code {}",
-                            response.status()
-                        );
-                    }
-                }
-                Err(err) => {
-                    debug!("failed to track_event: {}", err.to_string());
-                }
-            }
+    pub async fn flush(&self) {
+        self.dispatcher.flush().await;
+    }
+
+    pub fn flush_blocking(&self) {
+        tauri::async_runtime::block_on(async {
+            self.flush().await;
         });
     }
 }
