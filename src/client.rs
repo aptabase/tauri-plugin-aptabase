@@ -10,6 +10,13 @@ use crate::{
 
 static SESSION_TIMEOUT: Duration = Duration::from_secs(4 * 60 * 60);
 
+#[cfg(not(debug_assertions))]
+static DEFAULT_FLUSH_INTERVAL: Duration = Duration::from_secs(60);
+
+#[cfg(debug_assertions)]
+static DEFAULT_FLUSH_INTERVAL: Duration = Duration::from_secs(2);
+
+/// A tracking session.
 #[derive(Debug, Clone)]
 pub struct TrackingSession {
     pub id: String,
@@ -25,6 +32,7 @@ impl TrackingSession {
     }
 }
 
+/// The Aptabase client used to track events.
 pub struct AptabaseClient {
     is_enabled: bool,
     session: SyncMutex<TrackingSession>,
@@ -34,6 +42,8 @@ pub struct AptabaseClient {
 }
 
 impl AptabaseClient {
+
+    /// Creates a new Aptabase client.
     pub fn new(config: Config, app_version: String) -> Self {
         let sys_info = sys::get_info();
 
@@ -49,17 +59,20 @@ impl AptabaseClient {
         }
     }
 
-    pub(crate) fn start_polling(&self) {
+    /// Starts the event dispatcher loop.
+    pub(crate) fn start_polling(&self, interval: Option<Duration>) {
         let dispatcher = self.dispatcher.clone();
+        let interval = interval.unwrap_or(DEFAULT_FLUSH_INTERVAL);
 
         tauri::async_runtime::spawn(async move {
             loop {
-                tokio::time::sleep(Duration::from_secs(5)).await;
+                tokio::time::sleep(interval).await;
                 dispatcher.flush().await;
             }
         });
     }
 
+    /// Returns the current session ID, creating a new one if necessary.
     pub(crate) fn eval_session_id(&self) -> String {
         let mut session = self.session.lock().expect("could not lock events");
 
@@ -72,6 +85,7 @@ impl AptabaseClient {
         return session.id.clone();
     }
 
+    /// Enqueues an event to be sent to the server.
     pub fn track_event(&self, name: &str, props: Option<Value>) {
         if !self.is_enabled {
             return;
@@ -97,10 +111,12 @@ impl AptabaseClient {
         self.dispatcher.enqueue(ev);
     }
 
+    /// Flushes the event queue.
     pub async fn flush(&self) {
         self.dispatcher.flush().await;
     }
 
+    /// Flushes the event queue, blocking the current thread.
     pub fn flush_blocking(&self) {
         tauri::async_runtime::block_on(async {
             self.flush().await;
