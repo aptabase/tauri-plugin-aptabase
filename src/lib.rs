@@ -4,14 +4,14 @@ mod commands;
 mod sys;
 mod dispatcher;
 
-use std::{sync::Arc, panic::PanicInfo, time::Duration, thread};
+use std::{sync::Arc, panic::PanicInfo, time::Duration};
 
 use config::Config;
 use serde_json::Value;
 use client::AptabaseClient;
 use tauri::{
   plugin::{TauriPlugin, self},
-    Runtime, Manager, App, AppHandle, Window, 
+    Runtime, Manager, App, AppHandle, Window,
 };
 
 #[derive(Default, Debug, Clone)]
@@ -58,11 +58,11 @@ impl Builder {
       plugin::Builder::new("aptabase")
         .invoke_handler(tauri::generate_handler![commands::track_event])
         .setup(|app| {
-          let cfg = Config::new(self.app_key, self.options.host);
+          let cfg = Config::new(self.app_key, self.options);
           let app_version = app.package_info().version.to_string();
-          let client = Arc::new(AptabaseClient::new(cfg, app_version));
+          let client = Arc::new(AptabaseClient::new(&cfg, app_version));
 
-          client.start_polling(self.options.flush_interval);
+          client.start_polling(cfg.flush_interval);
           
           if let Some(hook) = self.panic_hook {
             let hook_client = client.clone();

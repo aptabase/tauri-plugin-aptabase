@@ -10,12 +10,6 @@ use crate::{
 
 static SESSION_TIMEOUT: Duration = Duration::from_secs(4 * 60 * 60);
 
-#[cfg(not(debug_assertions))]
-static DEFAULT_FLUSH_INTERVAL: Duration = Duration::from_secs(60);
-
-#[cfg(debug_assertions)]
-static DEFAULT_FLUSH_INTERVAL: Duration = Duration::from_secs(2);
-
 /// A tracking session.
 #[derive(Debug, Clone)]
 pub struct TrackingSession {
@@ -44,7 +38,7 @@ pub struct AptabaseClient {
 impl AptabaseClient {
 
     /// Creates a new Aptabase client.
-    pub fn new(config: Config, app_version: String) -> Self {
+    pub fn new(config: &Config, app_version: String) -> Self {
         let sys_info = sys::get_info();
 
         let is_enabled = !config.app_key.is_empty();
@@ -60,9 +54,8 @@ impl AptabaseClient {
     }
 
     /// Starts the event dispatcher loop.
-    pub(crate) fn start_polling(&self, interval: Option<Duration>) {
+    pub(crate) fn start_polling(&self, interval: Duration) {
         let dispatcher = self.dispatcher.clone();
-        let interval = interval.unwrap_or(DEFAULT_FLUSH_INTERVAL);
 
         tauri::async_runtime::spawn(async move {
             loop {

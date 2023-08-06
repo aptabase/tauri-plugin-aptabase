@@ -15,7 +15,7 @@ pub(crate) struct EventDispatcher {
 }
 
 impl EventDispatcher {
-    pub fn new(config: Config) -> Self {
+    pub fn new(config: &Config) -> Self {
         let mut headers = HeaderMap::new();
         let app_key_header = HeaderValue::from_str(config.app_key.as_str())
             .expect("failed to define App Key header value");

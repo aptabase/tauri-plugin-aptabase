@@ -38,7 +38,9 @@ fn main() {
 }
 ```
 
-You can then start sending events from Rust by importing the `tauri_plugin_aptabase::EventTracker` trait and calling the `track_event` method on an `App`, `AppHandle` or `Window`. For the app_started event, for example, you could do this:
+You can then start sending events from Rust by importing the `tauri_plugin_aptabase::EventTracker` trait and calling the `track_event` method on `App`, `AppHandle` or `Window`. 
+
+As an example, you can add `app_started` and `app_exited` events like this:
 
 
 ```rust
@@ -51,8 +53,15 @@ fn main() {
             app.track_event("app_started", None);
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|handler, event| match event {
+            tauri::RunEvent::Exit { .. } => {
+                handler.track_event("app_exited", None);
+                handler.flush_events_blocking();
+            }
+            _ => {}
+        })
 }
 ```
 
