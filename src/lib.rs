@@ -16,10 +16,12 @@ use tauri::{
 
 #[derive(Default, Debug, Clone)]
 pub struct InitOptions {
-  pub host: Option<String>
+  pub host: Option<String>,
+  pub flush_interval: Option<Duration>,
 }
 
 
+/// The Aptabase Plugin builder
 pub struct Builder {
   app_key: String,
   panic_hook: Option<PanicHook>,
@@ -30,6 +32,7 @@ pub type PanicHook =
   Box<dyn Fn(&AptabaseClient, &PanicInfo<'_>) + 'static + Sync + Send>;
 
 impl Builder {
+    /// Creates a new builder.
     pub fn new(app_key: &str) -> Self {
       Builder {
         app_key: app_key.into(),
@@ -38,16 +41,19 @@ impl Builder {
       }
     }
 
+    /// Sets custom topions to use for the Aptabase client.
     pub fn with_options(mut self, opts: InitOptions) -> Self {
       self.options = opts;
       self
     }
 
+    /// Sets a custom panic hook.
     pub fn with_panic_hook(mut self, hook: PanicHook) -> Self {
       self.panic_hook = Some(hook);
       self
     }
 
+    /// Builds and initializes the plugin
     pub fn build<R: Runtime>(self) -> TauriPlugin<R> {
       plugin::Builder::new("aptabase")
         .invoke_handler(tauri::generate_handler![commands::track_event])
@@ -56,16 +62,14 @@ impl Builder {
           let app_version = app.package_info().version.to_string();
           let client = Arc::new(AptabaseClient::new(cfg, app_version));
 
-          client.start_polling();
+          client.start_polling(self.options.flush_interval);
           
           if let Some(hook) = self.panic_hook {
             let hook_client = client.clone();
             std::panic::set_hook(Box::new(move |info| {
               hook(&hook_client, info);
-
-              // Wait 2sec to give time for the thread to send the event
-              // This can be removed when we move to Background Queue + Flush
-              thread::sleep(Duration::from_millis(2000));
+              
+              hook_client.flush_blocking();
             }));
           }
 
@@ -76,8 +80,12 @@ impl Builder {
     }
 }
 
+/// Trait implemented by Tauri handlers
 pub trait EventTracker {
+  /// Enqueues an event to be sent to the server.
   fn track_event(&self, name: &str, props: Option<Value>);
+
+  /// Flushes the event queue, blocking the current thread.
   fn flush_events_blocking(&self);
 }
 
