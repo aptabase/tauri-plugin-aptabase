@@ -1,3 +1,9 @@
+## 0.4.0
+
+* Events are now sent in batches to reduce network overhead
+* While offline, events will be enqueue and sent when the app is back online
+* Tauri 1.4 required
+
 ## 0.3.2
 
 * (macOS) Fixed an issue where sessions could span multiple days if the app was left open overnight
