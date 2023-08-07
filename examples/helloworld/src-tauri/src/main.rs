@@ -15,7 +15,7 @@ fn this_will_panic() {
 fn main() {
     tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![this_will_panic])
-        .plugin(tauri_plugin_aptabase::Builder::new("A-DEV-1782287517").with_panic_hook(Box::new(|client, info| {
+        .plugin(tauri_plugin_aptabase::Builder::new("A-DEV-0000000000").with_panic_hook(Box::new(|client, info| {
             client.track_event("panic", Some(json!({
                 "info": format!("{:?}", info),
             })));

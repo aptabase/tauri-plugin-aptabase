@@ -42,7 +42,7 @@ impl AptabaseClient {
         let sys_info = sys::get_info();
 
         let is_enabled = !config.app_key.is_empty();
-        let dispatcher = Arc::new(EventDispatcher::new(config));
+        let dispatcher = Arc::new(EventDispatcher::new(config, &sys_info));
 
         AptabaseClient {
             is_enabled,

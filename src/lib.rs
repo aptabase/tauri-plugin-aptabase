@@ -11,7 +11,7 @@ use serde_json::Value;
 use client::AptabaseClient;
 use tauri::{
   plugin::{TauriPlugin, self},
-    Runtime, Manager, App, AppHandle, Window,
+    Runtime, Manager, App, AppHandle, Window, RunEvent,
 };
 
 #[derive(Default, Debug, Clone)]
@@ -56,7 +56,9 @@ impl Builder {
     /// Builds and initializes the plugin
     pub fn build<R: Runtime>(self) -> TauriPlugin<R> {
       plugin::Builder::new("aptabase")
-        .invoke_handler(tauri::generate_handler![commands::track_event])
+        .invoke_handler(tauri::generate_handler![
+          commands::track_event
+        ])
         .setup(|app| {
           let cfg = Config::new(self.app_key, self.options);
           let app_version = app.package_info().version.to_string();
@@ -75,6 +77,12 @@ impl Builder {
 
           app.manage(client);
           Ok(())
+        })
+        .on_event(move |app, event| {
+            if let RunEvent::Exit = event {
+              let client = app.state::<Arc<AptabaseClient>>();
+              client.flush_blocking();
+            }
         })
         .build()
     }

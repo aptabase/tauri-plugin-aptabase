@@ -4,7 +4,7 @@ use log::{debug, trace};
 use reqwest::{header::{HeaderMap, HeaderValue}, Url};
 use serde_json::{Value, json};
 
-use crate::config::Config;
+use crate::{config::Config, sys::SystemProperties};
 
 static HTTP_REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 
@@ -15,14 +15,14 @@ pub(crate) struct EventDispatcher {
 }
 
 impl EventDispatcher {
-    pub fn new(config: &Config) -> Self {
+    pub fn new(config: &Config, sys: &SystemProperties) -> Self {
         let mut headers = HeaderMap::new();
         let app_key_header = HeaderValue::from_str(config.app_key.as_str())
             .expect("failed to define App Key header value");
         headers.insert("App-Key", app_key_header);
         headers.insert("Content-Type", HeaderValue::from_static("application/json"));
 
-        let user_agent = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+        let user_agent = format!("{}/{} {}/{} {}", sys.os_name, sys.os_version, sys.engine_name, sys.engine_version, sys.locale);
         let http_client = reqwest::Client::builder()
             .timeout(HTTP_REQUEST_TIMEOUT)
             .default_headers(headers)
