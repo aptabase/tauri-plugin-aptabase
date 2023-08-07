@@ -1,3 +1,8 @@
+## 0.4.1
+
+* Automatic flush of events on app exit
+* Fix User-Agent header
+
 ## 0.4.0
 
 * Events are now sent in batches to reduce network overhead
