@@ -14,7 +14,7 @@ Install the Core plugin by adding the following to your `Cargo.toml` file:
 [dependencies]
 # tauri-plugin-aptabase = "0.4"
 git = "https://github.com/aptabase/tauri-plugin-aptabase
-branch = next
+branch = "v2"
 ```
 
 You can install the JavaScript Guest bindings using your preferred JavaScript package manager
