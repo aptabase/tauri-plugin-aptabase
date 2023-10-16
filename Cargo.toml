@@ -11,7 +11,7 @@ repository = "https://github.com/aptabase/tauri-plugin-aptabase"
 exclude = ["/examples", "/webview-dist", "/webview-src", "node_modules"]
 
 [dependencies]
-tauri = { version = "1", features = ["os-api"] }
+tauri = { version = "2.0.0-alpha" }
 tokio = "1"
 futures = "0"
 serde = "1.0"

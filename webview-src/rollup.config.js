@@ -1,5 +1,5 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-import { terser } from 'rollup-plugin-terser'
+import terser from '@rollup/plugin-terser'
 import typescript from '@rollup/plugin-typescript'
 
 export default {
@@ -10,7 +10,7 @@ export default {
     format: 'es',
     exports: 'auto'
   },
-	external: [
+  external: [
     "@tauri-apps/api"
   ],
   plugins: [
