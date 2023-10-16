@@ -39,7 +39,7 @@ impl Builder {
         }
     }
 
-    /// Sets custom topions to use for the Aptabase client.
+    /// Sets custom options to use for the Aptabase client.
     pub fn with_options(mut self, opts: InitOptions) -> Self {
         self.options = opts;
         self
