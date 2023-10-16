@@ -26,7 +26,7 @@ pub struct SystemProperties {
 
 pub fn get_info() -> SystemProperties {
     let info = os_info::get();
-    let locale = sys_locale::get_locale().unwrap_or(String::from("unavailable")); // locale() not available YET in tauri v2
+    let locale = sys_locale::get_locale().unwrap_or_default();
     let engine_version = webview_version().unwrap_or_default();
 
     let os_name = match info.os_type() {
