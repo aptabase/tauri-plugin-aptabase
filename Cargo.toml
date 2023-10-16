@@ -22,3 +22,4 @@ time = { version = "0.3", features = ["formatting"]}
 os_info = "3"
 uuid = "1"
 log = "0.4"
+sys-locale = "0.3.1"
