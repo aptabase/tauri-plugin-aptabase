@@ -21,6 +21,8 @@ You can install the JavaScript Guest bindings using your preferred JavaScript pa
 npm add @aptabase/tauri
 ```
 
+> This plugin is only compatible with Tauri v1. To use it on a Tauri v2 app, [follow the instructions on our v2 branch](https://github.com/aptabase/tauri-plugin-aptabase/blob/v2).
+
 ## Usage
 
 First, you need to get your `App Key` from Aptabase, you can find it in the `Instructions` menu on the left side menu.
