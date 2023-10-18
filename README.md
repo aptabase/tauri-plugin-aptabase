@@ -13,7 +13,7 @@ Install the Core plugin by adding the following to your `Cargo.toml` file:
 ```toml
 [dependencies]
 # tauri-plugin-aptabase = "0.4"
-git = "https://github.com/aptabase/tauri-plugin-aptabase
+git = "https://github.com/aptabase/tauri-plugin-aptabase"
 branch = "v2"
 ```
 
