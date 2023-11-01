@@ -31,12 +31,12 @@
     "@rollup/plugin-node-resolve": "15.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "11.0.0",
-    "@tauri-apps/api": "2.0.0-alpha.8",
+    "@tauri-apps/api": "2.0.0-alpha.11",
     "rollup": "2.78.0",
     "tslib": "2.5.0",
     "typescript": "5.0.2"
   },
   "dependencies": {
-    "@tauri-apps/api": "2.0.0-alpha.8"
+    "@tauri-apps/api": "2.0.0-alpha.11"
   }
 }
