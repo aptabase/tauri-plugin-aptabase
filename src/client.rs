@@ -1,7 +1,8 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+use rand::Rng;
 use serde_json::{json, Value};
 use std::{sync::{Arc, Mutex as SyncMutex}, time::Duration};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
-use uuid::Uuid;
 
 use crate::{
     config::Config,
@@ -9,6 +10,20 @@ use crate::{
 };
 
 static SESSION_TIMEOUT: Duration = Duration::from_secs(4 * 60 * 60);
+
+fn new_session_id() -> String {
+    let epoch_in_seconds = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("time went backwards")
+        .as_secs();
+
+    let mut rng = rand::thread_rng();
+    let random: u64 = rng.gen_range(0..=99999999);
+
+    let id = epoch_in_seconds * 100_000_000 + random;
+
+    return id.to_string();
+}
 
 /// A tracking session.
 #[derive(Debug, Clone)]
@@ -20,7 +35,7 @@ pub struct TrackingSession {
 impl TrackingSession {
     fn new() -> Self {
         TrackingSession {
-            id: Uuid::new_v4().to_string(),
+            id: new_session_id(),
             last_touch_ts: OffsetDateTime::now_utc(),
         }
     }
@@ -52,7 +67,7 @@ impl AptabaseClient {
             sys_info,
         }
     }
-
+    
     /// Starts the event dispatcher loop.
     pub(crate) fn start_polling(&self, interval: Duration) {
         let dispatcher = self.dispatcher.clone();

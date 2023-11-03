@@ -1,3 +1,7 @@
+## 0.4.2
+
+* Use new session id format
+
 ## 0.4.1
 
 * Automatic flush of events on app exit
