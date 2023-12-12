@@ -4,7 +4,7 @@ mod commands;
 mod sys;
 mod dispatcher;
 
-use std::{sync::Arc, panic::PanicInfo, time::Duration};
+use std::{sync::Arc, panic::PanicInfo, time::Duration, thread::sleep};
 
 use config::Config;
 use serde_json::Value;
@@ -29,7 +29,18 @@ pub struct Builder {
 }
 
 pub type PanicHook =
-  Box<dyn Fn(&AptabaseClient, &PanicInfo<'_>) + 'static + Sync + Send>;
+  Box<dyn Fn(&AptabaseClient, &PanicInfo<'_>, String) + 'static + Sync + Send>;
+
+fn get_panic_message(info: &PanicInfo) -> String {
+  let payload = info.payload();
+  if let Some(s) = payload.downcast_ref::<&str>() {
+    return s.to_string();
+  } else if let Some(s) = payload.downcast_ref::<String>() {
+    return s.to_string();
+  }
+
+  return format!("{:?}", payload);
+}
 
 impl Builder {
     /// Creates a new builder.
@@ -69,9 +80,11 @@ impl Builder {
           if let Some(hook) = self.panic_hook {
             let hook_client = client.clone();
             std::panic::set_hook(Box::new(move |info| {
-              hook(&hook_client, info);
-              
-              hook_client.flush_blocking();
+                let msg = get_panic_message(info);
+                hook(&hook_client, info, msg);
+
+                let _ = hook_client.flush();
+                sleep(std::time::Duration::from_secs(2));
             }));
           }
 

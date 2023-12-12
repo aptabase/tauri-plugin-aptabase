@@ -1,6 +1,6 @@
 [package]
 name = "tauri-plugin-aptabase"
-version = "0.4.2"
+version = "0.5.0"
 license = "MIT"
 description = "Tauri Plugin for Aptabase: Open Source, Privacy-First and Simple Analytics for Mobile, Desktop and Web Apps"
 authors = [ "Guilherme Oenning" ]
