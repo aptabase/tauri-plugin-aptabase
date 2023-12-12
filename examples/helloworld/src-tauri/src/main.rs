@@ -15,9 +15,11 @@ fn this_will_panic() {
 fn main() {
     tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![this_will_panic])
-        .plugin(tauri_plugin_aptabase::Builder::new("A-DEV-0000000000").with_panic_hook(Box::new(|client, info| {
+        .plugin(tauri_plugin_aptabase::Builder::new("A-DEV-0000000000").with_panic_hook(Box::new(|client, info, msg| {
+            let location = info.location().map(|loc| format!("{}:{}:{}", loc.file(), loc.line(), loc.column())).unwrap_or_else(|| "".to_string());
+
             client.track_event("panic", Some(json!({
-                "info": format!("{:?}", info),
+                "info": format!("{} ({})", msg, location),
             })));
         })).build())
         .plugin(tauri_plugin_log::Builder::default().targets([
