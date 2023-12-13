@@ -18,7 +18,7 @@ tauri-plugin-aptabase = { git = "https://github.com/aptabase/tauri-plugin-aptaba
 You can install the JavaScript Guest bindings using your preferred JavaScript package manager
 
 ```bash
-npm add @aptabase/tauri
+npm add https://github.com/aptabase/tauri-plugin-aptabase#v2
 ```
 
 > This plugin is only compatible with Tauri v1. To use it on a Tauri v2 app, [follow the instructions on our v2 branch](https://github.com/aptabase/tauri-plugin-aptabase/blob/v2).
