@@ -1,3 +1,7 @@
+## 0.5.1
+
+* Fixed an issue where `with_panic_hook` would swallow the panic after logging it
+
 ## 0.5.0
 
 * Fixed an issue where `with_panic_hook` would panic
