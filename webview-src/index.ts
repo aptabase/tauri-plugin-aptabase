@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/primitives";
+import { invoke } from '@tauri-apps/api/core'
 
 type Props = {
   [key: string]: string | number;
