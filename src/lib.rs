@@ -75,6 +75,7 @@ impl Builder {
                 client.start_polling(cfg.flush_interval);
           
                 if let Some(hook) = self.panic_hook {
+                  let default_panic = std::panic::take_hook();
                   let hook_client = client.clone();
                   std::panic::set_hook(Box::new(move |info| {
                       let msg = get_panic_message(info);
@@ -82,6 +83,8 @@ impl Builder {
 
                       let _ = hook_client.flush();
                       sleep(std::time::Duration::from_secs(2));
+
+                      default_panic(info);
                   }));
                 }
 
