@@ -5,10 +5,10 @@
 .idea/
 debug.log
 package-lock.json
-pnpm-lock.yaml
 .vscode/settings.json
 yarn.lock
 
+/.tauri
 /target
 Cargo.lock
 node_modules/

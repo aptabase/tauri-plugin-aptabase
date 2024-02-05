@@ -21,13 +21,11 @@ You can install the JavaScript Guest bindings using your preferred JavaScript pa
 npm add https://github.com/aptabase/tauri-plugin-aptabase#v2
 ```
 
-> This plugin is only compatible with Tauri v1. To use it on a Tauri v2 app, [follow the instructions on our v2 branch](https://github.com/aptabase/tauri-plugin-aptabase/blob/v2).
-
 ## Usage
 
 First, you need to get your `App Key` from Aptabase, you can find it in the `Instructions` menu on the left side menu.
 
-Then you need to register the core plugin with Tauri:
+Then register the plugin with Tauri:
 
 `src-tauri/src/main.rs`
 
@@ -40,10 +38,11 @@ fn main() {
 }
 ```
 
+And finally add `aptabase:allow-track-event` to your list Access Control List.
+
 You can then start sending events from Rust by importing the `tauri_plugin_aptabase::EventTracker` trait and calling the `track_event` method on `App`, `AppHandle` or `Window`. 
 
 As an example, you can add `app_started` and `app_exited` events like this:
-
 
 ```rust
 use tauri_plugin_aptabase::EventTracker;

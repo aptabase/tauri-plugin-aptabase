@@ -2,6 +2,7 @@
   "name": "@aptabase/tauri",
   "version": "0.4.2",
   "private": false,
+  "type": "module",
   "description": "Tauri Plugin for Aptabase: Open Source, Privacy-First and Simple Analytics for Mobile, Desktop and Web Apps",
   "author": "Guilherme Oenning",
   "browser": "webview-dist/index.js",
@@ -18,8 +19,8 @@
   "scripts": {
     "build": "rollup -c ./webview-src/rollup.config.js",
     "watch": "rollup -c ./webview-src/rollup.config.js -w",
-    "prepublishOnly": "yarn build",
-    "pretest": "yarn build"
+    "prepublishOnly": "npm run build",
+    "pretest": "npm run build"
   },
   "files": [
     "README.md",
@@ -28,15 +29,14 @@
     "package.json"
   ],
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "15.0.1",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "11.0.0",
-    "@tauri-apps/api": "2.0.0-alpha.11",
-    "rollup": "2.78.0",
-    "tslib": "2.5.0",
-    "typescript": "5.0.2"
+    "@rollup/plugin-node-resolve": "15.2.3",
+    "@rollup/plugin-typescript": "11.1.6",
+    "@rollup/plugin-terser": "0.4.4",
+    "rollup": "4.9.6",
+    "typescript": "5.3.3"
   },
   "dependencies": {
-    "@tauri-apps/api": "2.0.0-alpha.11"
+    "@tauri-apps/api": "^2.0.0-alpha.11",
+    "tslib": "^2.6.2"
   }
 }

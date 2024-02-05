@@ -4,7 +4,6 @@
     "strict": true,
     "allowJs": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
       "types": ["@types"]
@@ -13,6 +12,5 @@
     "declarationDir": "../webview-dist",
     "rootDir": "./"
   },
-  "include": ["./"],
-  "exclude": ["./rollup.config.js"]
+  "include": ["./"]
 }
