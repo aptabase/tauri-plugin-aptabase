@@ -9,6 +9,9 @@ static ENGINE_NAME: &str = "WebKit";
 #[cfg(target_os = "windows")]
 static ENGINE_NAME: &str = "WebView2";
 
+#[cfg(target_os = "android")]
+static ENGINE_NAME: &str = "WebView2";
+
 #[cfg(debug_assertions)]
 static IS_DEBUG: bool = true;
 
