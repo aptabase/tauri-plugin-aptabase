@@ -4,7 +4,7 @@ mod config;
 mod dispatcher;
 mod sys;
 
-use std::{panic::PanicInfo, sync::Arc, thread::sleep, time::Duration};
+use std::{panic::PanicInfo, sync::Arc, time::Duration};
 
 use client::AptabaseClient;
 use config::Config;
