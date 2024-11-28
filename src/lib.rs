@@ -4,7 +4,7 @@ mod config;
 mod dispatcher;
 mod sys;
 
-use std::{sync::Arc, panic::PanicInfo, time::Duration, thread::sleep};
+use std::{panic::PanicInfo, sync::Arc, time::Duration};
 
 use client::AptabaseClient;
 use config::Config;
@@ -27,18 +27,17 @@ pub struct Builder {
     options: InitOptions,
 }
 
-pub type PanicHook =
-  Box<dyn Fn(&AptabaseClient, &PanicInfo<'_>, String) + 'static + Sync + Send>;
+pub type PanicHook = Box<dyn Fn(&AptabaseClient, &PanicInfo<'_>, String) + 'static + Sync + Send>;
 
 fn get_panic_message(info: &PanicInfo) -> String {
-  let payload = info.payload();
-  if let Some(s) = payload.downcast_ref::<&str>() {
-    return s.to_string();
-  } else if let Some(s) = payload.downcast_ref::<String>() {
-    return s.to_string();
-  }
+    let payload = info.payload();
+    if let Some(s) = payload.downcast_ref::<&str>() {
+        return s.to_string();
+    } else if let Some(s) = payload.downcast_ref::<String>() {
+        return s.to_string();
+    }
 
-  return format!("{:?}", payload);
+    return format!("{:?}", payload);
 }
 
 impl Builder {
@@ -73,19 +72,16 @@ impl Builder {
                 let client = Arc::new(AptabaseClient::new(&cfg, app_version));
 
                 client.start_polling(cfg.flush_interval);
-          
+
                 if let Some(hook) = self.panic_hook {
-                  let default_panic = std::panic::take_hook();
-                  let hook_client = client.clone();
-                  std::panic::set_hook(Box::new(move |info| {
-                      let msg = get_panic_message(info);
-                      hook(&hook_client, info, msg);
-
-                      let _ = hook_client.flush();
-                      sleep(std::time::Duration::from_secs(2));
-
-                      default_panic(info);
-                  }));
+                    let default_panic = std::panic::take_hook();
+                    let hook_client = client.clone();
+                    std::panic::set_hook(Box::new(move |info| {
+                        let msg = get_panic_message(info);
+                        hook(&hook_client, info, msg);
+                        hook_client.flush_blocking();
+                        default_panic(info);
+                    }));
                 }
 
                 app.manage(client);
