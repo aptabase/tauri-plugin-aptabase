@@ -1,12 +1,16 @@
-use std::time::{SystemTime, UNIX_EPOCH};
 use rand::Rng;
 use serde_json::{json, Value};
-use std::{sync::{Arc, Mutex as SyncMutex}, time::Duration};
+use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    sync::{Arc, Mutex as SyncMutex},
+    time::Duration,
+};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 use crate::{
     config::Config,
-    sys::{self, SystemProperties}, dispatcher::EventDispatcher,
+    dispatcher::EventDispatcher,
+    sys::{self, SystemProperties},
 };
 
 static SESSION_TIMEOUT: Duration = Duration::from_secs(4 * 60 * 60);
@@ -22,7 +26,7 @@ fn new_session_id() -> String {
 
     let id = epoch_in_seconds * 100_000_000 + random;
 
-    return id.to_string();
+    id.to_string()
 }
 
 /// A tracking session.
@@ -34,7 +38,7 @@ pub struct TrackingSession {
 
 impl TrackingSession {
     fn new() -> Self {
-        TrackingSession {
+        Self {
             id: new_session_id(),
             last_touch_ts: OffsetDateTime::now_utc(),
         }
@@ -51,7 +55,6 @@ pub struct AptabaseClient {
 }
 
 impl AptabaseClient {
-
     /// Creates a new Aptabase client.
     pub fn new(config: &Config, app_version: String) -> Self {
         let sys_info = sys::get_info();
@@ -59,7 +62,7 @@ impl AptabaseClient {
         let is_enabled = !config.app_key.is_empty();
         let dispatcher = Arc::new(EventDispatcher::new(config, &sys_info));
 
-        AptabaseClient {
+        Self {
             is_enabled,
             dispatcher,
             session: SyncMutex::new(TrackingSession::new()),
@@ -67,7 +70,7 @@ impl AptabaseClient {
             sys_info,
         }
     }
-    
+
     /// Starts the event dispatcher loop.
     pub(crate) fn start_polling(&self, interval: Duration) {
         let dispatcher = self.dispatcher.clone();
@@ -90,7 +93,8 @@ impl AptabaseClient {
         } else {
             session.last_touch_ts = now;
         }
-        return session.id.clone();
+
+        session.id.clone()
     }
 
     /// Enqueues an event to be sent to the server.

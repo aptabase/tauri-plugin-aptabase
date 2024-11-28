@@ -1,8 +1,16 @@
-use std::{collections::VecDeque, time::Duration, cmp::min, sync::{Arc, RwLock}};
+use std::{
+    cmp::min,
+    collections::VecDeque,
+    sync::{Arc, RwLock},
+    time::Duration,
+};
 
 use log::{debug, trace};
-use reqwest::{header::{HeaderMap, HeaderValue}, Url};
-use serde_json::{Value, json};
+use reqwest::{
+    header::{HeaderMap, HeaderValue},
+    Url,
+};
+use serde_json::{json, Value};
 
 use crate::{config::Config, sys::SystemProperties};
 
@@ -22,17 +30,20 @@ impl EventDispatcher {
         headers.insert("App-Key", app_key_header);
         headers.insert("Content-Type", HeaderValue::from_static("application/json"));
 
-        let user_agent = format!("{}/{} {}/{} {}", sys.os_name, sys.os_version, sys.engine_name, sys.engine_version, sys.locale);
+        let user_agent = format!(
+            "{}/{} {}/{} {}",
+            sys.os_name, sys.os_version, sys.engine_name, sys.engine_version, sys.locale
+        );
         let http_client = reqwest::Client::builder()
             .timeout(HTTP_REQUEST_TIMEOUT)
             .default_headers(headers)
             .user_agent(user_agent)
             .build()
             .expect("could not build http client");
-        
+
         let queue = Arc::new(RwLock::new(VecDeque::new()));
 
-        EventDispatcher {
+        Self {
             url: config.ingest_api_url.clone(),
             queue,
             http_client,
@@ -40,7 +51,7 @@ impl EventDispatcher {
     }
 
     pub fn is_empty(&self) -> bool {
-        let  queue = self.queue.read().expect("could not lock queue for reading");
+        let queue = self.queue.read().expect("could not lock queue for reading");
         queue.is_empty()
     }
 
@@ -54,7 +65,7 @@ impl EventDispatcher {
         queue.extend(events);
     }
 
-    fn dequeue_many(&self, max: usize) -> Vec<Value> {        
+    fn dequeue_many(&self, max: usize) -> Vec<Value> {
         let mut queue = self.queue.write().expect("could not lock queue");
         if queue.is_empty() {
             return Vec::new();
@@ -79,26 +90,29 @@ impl EventDispatcher {
             }
 
             trace!("preparing {} events to send", events_to_send.len());
-            
+
             let body = json!(events_to_send);
-            let response = self.http_client.post(self.url.clone()).json(&body).send().await;
+            let response = self
+                .http_client
+                .post(self.url.clone())
+                .json(&body)
+                .send()
+                .await;
             match response {
-                Ok(response) => {
-                    match response.status().is_success() {
-                        true => {
-                            trace!("sent {} tracking events", events_to_send.len());
-                        },
-                        false => {
-                            debug!(
-                                "failed to track_event with status code {}",
-                                response.status()
-                            );
-                            if response.status().is_server_error() {
-                                failed_items.extend(events_to_send);
-                            }
+                Ok(response) => match response.status().is_success() {
+                    true => {
+                        trace!("sent {} tracking events", events_to_send.len());
+                    }
+                    false => {
+                        debug!(
+                            "failed to track_event with status code {}",
+                            response.status()
+                        );
+                        if response.status().is_server_error() {
+                            failed_items.extend(events_to_send);
                         }
                     }
-                }
+                },
                 Err(err) => {
                     failed_items.extend(events_to_send);
                     debug!("failed to track_event: {}", err.to_string());
