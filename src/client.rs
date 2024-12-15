@@ -98,9 +98,18 @@ impl AptabaseClient {
     }
 
     /// Enqueues an event to be sent to the server.
-    pub fn track_event(&self, name: &str, props: Option<Value>) {
+    pub fn track_event(&self, name: &str, props: Option<Value>) -> Result<(), String> {
         if !self.is_enabled {
-            return;
+            return Ok(());
+        }
+
+        if let Some(props) = &props {
+            if !matches!(props, Value::Object(_)) {
+                return Err(
+                    "props must be `None` or the `Object` variation of `serde_json::Value`"
+                        .to_owned(),
+                );
+            }
         }
 
         let ev = json!({
@@ -121,6 +130,8 @@ impl AptabaseClient {
         });
 
         self.dispatcher.enqueue(ev);
+
+        Ok(())
     }
 
     /// Flushes the event queue.
