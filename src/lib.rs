@@ -101,16 +101,16 @@ impl Builder {
 /// Trait implemented by Tauri handlers
 pub trait EventTracker {
     /// Enqueues an event to be sent to the server.
-    fn track_event(&self, name: &str, props: Option<Value>);
+    fn track_event(&self, name: &str, props: Option<Value>) -> Result<(), String>;
 
     /// Flushes the event queue, blocking the current thread.
     fn flush_events_blocking(&self);
 }
 
 impl EventTracker for App {
-    fn track_event(&self, name: &str, props: Option<Value>) {
+    fn track_event(&self, name: &str, props: Option<Value>) -> Result<(), String> {
         let client = self.state::<Arc<AptabaseClient>>();
-        client.track_event(name, props);
+        client.track_event(name, props)
     }
 
     fn flush_events_blocking(&self) {
@@ -120,9 +120,9 @@ impl EventTracker for App {
 }
 
 impl EventTracker for AppHandle {
-    fn track_event(&self, name: &str, props: Option<Value>) {
+    fn track_event(&self, name: &str, props: Option<Value>) -> Result<(), String> {
         let client = self.state::<Arc<AptabaseClient>>();
-        client.track_event(name, props);
+        client.track_event(name, props)
     }
 
     fn flush_events_blocking(&self) {
@@ -132,9 +132,9 @@ impl EventTracker for AppHandle {
 }
 
 impl EventTracker for Window {
-    fn track_event(&self, name: &str, props: Option<Value>) {
+    fn track_event(&self, name: &str, props: Option<Value>) -> Result<(), String> {
         let client = self.state::<Arc<AptabaseClient>>();
-        client.track_event(name, props);
+        client.track_event(name, props)
     }
 
     fn flush_events_blocking(&self) {
