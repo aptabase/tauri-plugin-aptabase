@@ -75,7 +75,7 @@ impl AptabaseClient {
     pub(crate) fn start_polling(&self, interval: Duration) {
         let dispatcher = self.dispatcher.clone();
 
-        tauri::async_runtime::spawn(async move {
+        tokio::spawn(async move {
             loop {
                 tokio::time::sleep(interval).await;
                 dispatcher.flush().await;
@@ -141,7 +141,7 @@ impl AptabaseClient {
 
     /// Flushes the event queue, blocking the current thread.
     pub fn flush_blocking(&self) {
-        tauri::async_runtime::block_on(async {
+        futures::executor::block_on(async {
             self.flush().await;
         });
     }
