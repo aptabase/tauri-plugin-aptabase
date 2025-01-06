@@ -32,6 +32,7 @@ pub fn get_info() -> SystemProperties {
     let os_name = match info.os_type() {
         os_info::Type::Macos => "macOS".to_string(),
         os_info::Type::Windows => "Windows".to_string(),
+        _ if std::env::var("container").is_ok() => "Flatpak".to_string(),
         _ => info.os_type().to_string(),
     };
 
