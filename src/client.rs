@@ -21,8 +21,8 @@ fn new_session_id() -> String {
         .expect("time went backwards")
         .as_secs();
 
-    let mut rng = rand::thread_rng();
-    let random: u64 = rng.gen_range(0..=99999999);
+    let mut rng = rand::rng();
+    let random: u64 = rng.random_range(0..=99999999);
 
     let id = epoch_in_seconds * 100_000_000 + random;
 
