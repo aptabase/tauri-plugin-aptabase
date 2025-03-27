@@ -12,7 +12,7 @@ Install the Core plugin by adding the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-tauri-plugin-aptabase = "1.0"
+tauri-plugin-aptabase = "1.0.0"
 ```
 
 ```toml
@@ -39,7 +39,7 @@ Then register the plugin with Tauri:
 `src-tauri/src/main.rs`
 
 ```rust
-fn main() {
+async fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_aptabase::Builder::new("<YOUR_APP_KEY>").build()) // 👈 this is where you enter your App Key
         .run(tauri::generate_context!())
