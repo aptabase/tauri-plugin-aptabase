@@ -1,3 +1,7 @@
+## 1.0.0
+
+* Update Tauri v2
+
 ## 0.5.1
 
 * Fixed an issue where `with_panic_hook` would swallow the panic after logging it
