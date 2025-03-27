@@ -39,6 +39,7 @@ Then register the plugin with Tauri:
 `src-tauri/src/main.rs`
 
 ```rust
+#[tokio::main]
 async fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_aptabase::Builder::new("<YOUR_APP_KEY>").build()) // 👈 this is where you enter your App Key
@@ -56,7 +57,8 @@ As an example, you can add `app_started` and `app_exited` events like this:
 ```rust
 use tauri_plugin_aptabase::EventTracker;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_aptabase::init("<YOUR_APP_KEY>".into()))
         .setup(|app| {
