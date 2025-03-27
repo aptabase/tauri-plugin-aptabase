@@ -1,12 +1,16 @@
-use std::time::{SystemTime, UNIX_EPOCH};
 use rand::Rng;
 use serde_json::{json, Value};
-use std::{sync::{Arc, Mutex as SyncMutex}, time::Duration};
+use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    sync::{Arc, Mutex as SyncMutex},
+    time::Duration,
+};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 use crate::{
     config::Config,
-    sys::{self, SystemProperties}, dispatcher::EventDispatcher,
+    dispatcher::EventDispatcher,
+    sys::{self, SystemProperties},
 };
 
 static SESSION_TIMEOUT: Duration = Duration::from_secs(4 * 60 * 60);
@@ -17,12 +21,12 @@ fn new_session_id() -> String {
         .expect("time went backwards")
         .as_secs();
 
-    let mut rng = rand::thread_rng();
-    let random: u64 = rng.gen_range(0..=99999999);
+    let mut rng = rand::rng();
+    let random: u64 = rng.random_range(0..=99999999);
 
     let id = epoch_in_seconds * 100_000_000 + random;
 
-    return id.to_string();
+    id.to_string()
 }
 
 /// A tracking session.
@@ -34,7 +38,7 @@ pub struct TrackingSession {
 
 impl TrackingSession {
     fn new() -> Self {
-        TrackingSession {
+        Self {
             id: new_session_id(),
             last_touch_ts: OffsetDateTime::now_utc(),
         }
@@ -51,7 +55,6 @@ pub struct AptabaseClient {
 }
 
 impl AptabaseClient {
-
     /// Creates a new Aptabase client.
     pub fn new(config: &Config, app_version: String) -> Self {
         let sys_info = sys::get_info();
@@ -59,7 +62,7 @@ impl AptabaseClient {
         let is_enabled = !config.app_key.is_empty();
         let dispatcher = Arc::new(EventDispatcher::new(config, &sys_info));
 
-        AptabaseClient {
+        Self {
             is_enabled,
             dispatcher,
             session: SyncMutex::new(TrackingSession::new()),
@@ -67,12 +70,12 @@ impl AptabaseClient {
             sys_info,
         }
     }
-    
+
     /// Starts the event dispatcher loop.
     pub(crate) fn start_polling(&self, interval: Duration) {
         let dispatcher = self.dispatcher.clone();
 
-        tauri::async_runtime::spawn(async move {
+        tokio::spawn(async move {
             loop {
                 tokio::time::sleep(interval).await;
                 dispatcher.flush().await;
@@ -90,13 +93,23 @@ impl AptabaseClient {
         } else {
             session.last_touch_ts = now;
         }
-        return session.id.clone();
+
+        session.id.clone()
     }
 
     /// Enqueues an event to be sent to the server.
-    pub fn track_event(&self, name: &str, props: Option<Value>) {
+    pub fn track_event(&self, name: &str, props: Option<Value>) -> Result<(), String> {
         if !self.is_enabled {
-            return;
+            return Ok(());
+        }
+
+        if let Some(props) = &props {
+            if !matches!(props, Value::Object(_)) {
+                return Err(
+                    "props must be `None` or the `Object` variation of `serde_json::Value`"
+                        .to_owned(),
+                );
+            }
         }
 
         let ev = json!({
@@ -117,6 +130,8 @@ impl AptabaseClient {
         });
 
         self.dispatcher.enqueue(ev);
+
+        Ok(())
     }
 
     /// Flushes the event queue.
@@ -126,7 +141,7 @@ impl AptabaseClient {
 
     /// Flushes the event queue, blocking the current thread.
     pub fn flush_blocking(&self) {
-        tauri::async_runtime::block_on(async {
+        futures::executor::block_on(async {
             self.flush().await;
         });
     }

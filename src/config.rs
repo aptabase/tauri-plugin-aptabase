@@ -22,13 +22,16 @@ static DEFAULT_FLUSH_INTERVAL: Duration = Duration::from_secs(60);
 #[cfg(debug_assertions)]
 static DEFAULT_FLUSH_INTERVAL: Duration = Duration::from_secs(2);
 
-const VALID_REGIONS: &'static [&'static str] = &["US", "EU", "DEV", "SH"];
+const VALID_REGIONS: &[&str] = &["US", "EU", "DEV", "SH"];
 
 impl Config {
     pub fn new(app_key: String, opts: InitOptions) -> Self {
         let parts = app_key.split("-").collect::<Vec<&str>>();
         if parts.len() != 3 || !VALID_REGIONS.contains(&parts[1]) {
-            debug!("The Aptabase App Key '{}' is invalid. Tracking will be disabled.", app_key);
+            debug!(
+                "The Aptabase App Key '{}' is invalid. Tracking will be disabled.",
+                app_key
+            );
             return Config::default();
         }
 
@@ -43,24 +46,24 @@ impl Config {
                     debug!("Host parameter must be defined when using Self-Hosted App Key. Tracking will be disabled.");
                     return Config::default();
                 }
-            },
+            }
             _ => return Config::default(),
         };
 
-        Config {
+        Self {
             app_key,
             ingest_api_url: format!("{}/api/v0/events", base_url).parse().unwrap(),
-            flush_interval: opts.flush_interval.clone().unwrap_or(DEFAULT_FLUSH_INTERVAL)
+            flush_interval: opts.flush_interval.unwrap_or(DEFAULT_FLUSH_INTERVAL),
         }
     }
 }
 
 impl Default for Config {
     fn default() -> Self {
-        return Config {
+        Self {
             app_key: String::new(),
             ingest_api_url: Url::parse(LOCAL).unwrap(),
             flush_interval: DEFAULT_FLUSH_INTERVAL,
-        };
+        }
     }
 }

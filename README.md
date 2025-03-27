@@ -12,22 +12,20 @@ Install the Core plugin by adding the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-tauri-plugin-aptabase = "0.4"
+tauri-plugin-aptabase = { git = "https://github.com/aptabase/tauri-plugin-aptabase", branch = "v2" }
 ```
 
 You can install the JavaScript Guest bindings using your preferred JavaScript package manager
 
 ```bash
-npm add @aptabase/tauri
+npm add https://github.com/aptabase/tauri-plugin-aptabase#v2
 ```
-
-> This plugin is only compatible with Tauri v1. To use it on a Tauri v2 app, [follow the instructions on our v2 branch](https://github.com/aptabase/tauri-plugin-aptabase/blob/v2).
 
 ## Usage
 
 First, you need to get your `App Key` from Aptabase, you can find it in the `Instructions` menu on the left side menu.
 
-Then you need to register the core plugin with Tauri:
+Then register the plugin with Tauri:
 
 `src-tauri/src/main.rs`
 
@@ -40,10 +38,11 @@ fn main() {
 }
 ```
 
+And finally add `aptabase:allow-track-event` to your list Access Control List.
+
 You can then start sending events from Rust by importing the `tauri_plugin_aptabase::EventTracker` trait and calling the `track_event` method on `App`, `AppHandle` or `Window`. 
 
 As an example, you can add `app_started` and `app_exited` events like this:
-
 
 ```rust
 use tauri_plugin_aptabase::EventTracker;
@@ -83,3 +82,35 @@ A few important notes:
     - Because of this, it's generally recommended to at least track an event at startup
 3. You do not need to await for the `trackEvent` function, it'll run in the background.
 3. Only strings and numbers values are allowed on custom properties
+
+## Providing the APTABASE_KEY via .env
+
+It's possible to load the APTABASE_KEY from a .env file at compile time using the `dotenvy_macro` crate. The `.env` file needs to be
+in the `src-tauri` directory for the `dotevny_macro` crate to find it properly.
+
+Add the `use` declaration to where you are building the tauri app (likely `lib.rs` for Tauri v2), and then call it where you would put the key.
+
+```rust
+use tauri_plugin_aptabase::EventTracker;
+use dotenvy_macro::dotenv;
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+/// This function sets up and runs a Rust application using the Tauri framework, with various plugins
+/// and event handlers.
+pub fn run() {
+    tauri::Builder::default()
+        .build(tauri::generate_context!())
+        .plugin(tauri_plugin_aptabase::Builder::new(dotenv!("APTABASE_KEY")).build())
+        .expect("Error when building tauri app")
+        .run(|handler, event| match event {
+            tauri::RunEvent::Exit { .. } => {
+                handler.track_event("app_exited", None);
+                handler.flush_events_blocking();
+            }
+            tauri::RunEvent::Ready { .. } => {
+                handler.track_event("app_started", None);
+            }
+            _ => {}
+        });
+}
+```
