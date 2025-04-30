@@ -4,7 +4,7 @@ use tauri::webview_version;
 static ENGINE_NAME: &str = "WebKitGTK";
 
 #[cfg(target_os = "android")]
-static ENGINE_NAME: &str = "Android Webview";
+static ENGINE_NAME: &str = "Android System Webview";
 
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 static ENGINE_NAME: &str = "WebKit";
