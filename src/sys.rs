@@ -27,6 +27,15 @@ pub struct SystemProperties {
     pub engine_version: String,
 }
 
+#[cfg(target_os = "linux")]
+fn is_flatpak() -> bool {
+    use std::env::var;
+    var("FLATPAK_ID").is_ok()
+        || var("container")
+            .map(|x| x.to_lowercase().trim() == "flatpak")
+            .unwrap_or(false)
+}
+
 pub fn get_info() -> SystemProperties {
     let info = os_info::get();
     let locale = sys_locale::get_locale().unwrap_or_default();
@@ -35,7 +44,8 @@ pub fn get_info() -> SystemProperties {
     let os_name = match info.os_type() {
         os_info::Type::Macos => "macOS".to_string(),
         os_info::Type::Windows => "Windows".to_string(),
-        _ if std::env::var("container").is_ok() => "Flatpak".to_string(),
+        #[cfg(target_os = "linux")]
+        _ if is_flatpak() => "Flatpak".to_string(),
         _ => info.os_type().to_string(),
     };
 
