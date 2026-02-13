@@ -23,6 +23,8 @@ os_info = "3.9.2"
 rand = "0.9.0"
 log = "0.4.25"
 sys-locale = "0.3.2"
+machine-uid = "0.5.4"
+sha2 = "0.10.9"
 
 [build-dependencies]
 tauri-plugin = { version = "2.0.4", features = ["build"] }
