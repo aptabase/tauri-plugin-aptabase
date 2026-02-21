@@ -17,7 +17,9 @@ pub(crate) fn build_session_id(machine_id: &str, app_key: &str, date: &str) -> S
     hasher.update(app_key.as_bytes());
     hasher.update(date.as_bytes());
 
-    format!("{:x}", hasher.finalize())
+    let hash = format!("{:x}", hasher.finalize());
+    // Aptabase server validates SessionId <= 36 chars, SHA-256 hex is 64
+    hash[..36].to_string()
 }
 
 /// Creates a deterministic session ID from machine ID, app key, and current UTC date.

@@ -29,9 +29,9 @@ fn build_session_id_changes_with_different_machine() {
 }
 
 #[test]
-fn build_session_id_returns_valid_sha256_hex() {
+fn build_session_id_returns_truncated_hex() {
     let id = build_session_id("machine-123", "A-US-abc", "2026-02-13");
-    assert_eq!(id.len(), 64);
+    assert_eq!(id.len(), 36);
     assert!(id.chars().all(|c| c.is_ascii_hexdigit()));
 }
 
