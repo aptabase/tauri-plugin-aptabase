@@ -1,0 +1,161 @@
+# Aptabase — Tauri Plugin
+
+> Tauri plugin for Aptabase: open-source, privacy-first analytics for desktop and mobile apps built with Tauri v2.
+
+Rust Crate: `tauri-plugin-aptabase`
+Install (Rust): `cargo add tauri-plugin-aptabase`
+npm Package: `@aptabase/tauri`
+Install (JS): `npm add @aptabase/tauri`
+Repo: https://github.com/aptabase/tauri-plugin-aptabase
+
+## Overview
+
+Aptabase is an open-source, privacy-first analytics platform. This plugin integrates Aptabase into Tauri v2 apps.
+
+- Get your App Key from the Aptabase dashboard (Settings > Instructions)
+- App keys follow the format `A-EU-*` (European) or `A-US-*` (US)
+- Only strings and numbers are allowed as custom property values
+- All tracking is non-blocking and runs in the background
+- No events are tracked automatically — you must call `track_event`/`trackEvent` manually
+- The plugin automatically captures OS, app version, locale, and other system properties
+
+## Important: Dual API (Rust + JavaScript)
+
+This plugin provides **two APIs** — use whichever fits your app architecture:
+
+- **Rust API** — use `EventTracker` trait on `App`, `AppHandle`, or `Window`
+- **JavaScript API** — use `trackEvent()` from `@aptabase/tauri` in your webview frontend
+
+Both APIs require the Rust plugin to be registered in your Tauri builder. The JS API calls the Rust backend via Tauri's IPC.
+
+## Installation
+
+### 1. Add the Rust crate
+
+In `src-tauri/Cargo.toml`:
+
+```toml
+[dependencies]
+tauri-plugin-aptabase = "1.0.0"
+```
+
+### 2. Add the JS package (optional, for webview tracking)
+
+```bash
+npm add @aptabase/tauri
+```
+
+### 3. Register the plugin
+
+In `src-tauri/src/main.rs` (or `lib.rs`):
+
+```rust
+#[tokio::main]
+async fn main() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_aptabase::Builder::new("<YOUR_APP_KEY>").build())
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+```
+
+### 4. Add ACL permission
+
+Add `aptabase:allow-track-event` to your Tauri capabilities to allow the JS API to send events. In your `src-tauri/capabilities/*.json`:
+
+```json
+{
+  "permissions": ["aptabase:allow-track-event"]
+}
+```
+
+## Track Events (Rust)
+
+Import the `EventTracker` trait and call `track_event` on `App`, `AppHandle`, or `Window`:
+
+```rust
+use tauri_plugin_aptabase::EventTracker;
+
+// Event with no properties
+app.track_event("app_started", None);
+
+// Event with properties (serde_json::Value)
+app.track_event("screen_view", Some(serde_json::json!({ "name": "Settings" })));
+```
+
+Full example with startup and exit events:
+
+```rust
+use tauri_plugin_aptabase::EventTracker;
+
+#[tokio::main]
+async fn main() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_aptabase::Builder::new("<YOUR_APP_KEY>").build())
+        .setup(|app| {
+            app.track_event("app_started", None);
+            Ok(())
+        })
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(|handler, event| match event {
+            tauri::RunEvent::Exit { .. } => {
+                handler.track_event("app_exited", None);
+                handler.flush_events_blocking();
+            }
+            _ => {}
+        });
+}
+```
+
+## Track Events (JavaScript)
+
+```js
+import { trackEvent } from "@aptabase/tauri";
+
+trackEvent("app_started");
+```
+
+## Track Events with Properties (JavaScript)
+
+```js
+import { trackEvent } from "@aptabase/tauri";
+
+trackEvent("screen_view", { name: "Settings" });
+trackEvent("purchase", { plan: "pro", price: 9.99 });
+```
+
+## Configuration
+
+The `Builder` accepts optional `InitOptions`:
+
+```rust
+use tauri_plugin_aptabase::{Builder, InitOptions};
+use std::time::Duration;
+
+tauri::Builder::default()
+    .plugin(
+        Builder::new("<YOUR_APP_KEY>")
+            .with_options(InitOptions {
+                host: Some("https://your-self-hosted-instance.com".into()), // self-hosted only (A-SH-* keys)
+                flush_interval: Some(Duration::from_secs(30)), // custom flush interval
+            })
+            .build()
+    )
+```
+
+- `host` — required only for self-hosted Aptabase instances (app keys starting with `A-SH-*`)
+- `flush_interval` — defaults to 60s in release, 2s in debug mode
+- Events are batched and flushed periodically; `flush_events_blocking()` forces an immediate flush
+
+## Platform Notes
+
+- Requires Tauri v2 (2.x)
+- Rust edition 2021, MSRV 1.70
+- The `EventTracker` trait is implemented for `App`, `AppHandle`, and `Window`
+- The JS `trackEvent` is async but you don't need to await it
+- A custom panic hook can be set via `Builder::with_panic_hook()` to track crashes
+
+## Cross-Discovery
+
+For all Aptabase SDKs and documentation, see: https://aptabase.com/llms.txt
