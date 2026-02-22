@@ -125,3 +125,5 @@ pub fn run() {
         });
 }
 ```
+
+For AI/LLM integration instructions, see [llms.txt](./llms.txt)
