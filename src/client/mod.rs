@@ -1,10 +1,7 @@
-use rand::Rng;
 use serde_json::{json, Value};
-use std::time::{SystemTime, UNIX_EPOCH};
-use std::{
-    sync::{Arc, Mutex as SyncMutex},
-    time::Duration,
-};
+use sha2::{Digest, Sha256};
+use std::sync::{Arc, Mutex as SyncMutex};
+use std::time::Duration;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 use crate::{
@@ -13,34 +10,38 @@ use crate::{
     sys::{self, SystemProperties},
 };
 
-static SESSION_TIMEOUT: Duration = Duration::from_secs(4 * 60 * 60);
+/// Computes a deterministic session ID from machine ID, app key, and date string.
+pub(crate) fn build_session_id(machine_id: &str, app_key: &str, date: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(machine_id.as_bytes());
+    hasher.update(app_key.as_bytes());
+    hasher.update(date.as_bytes());
 
-fn new_session_id() -> String {
-    let epoch_in_seconds = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("time went backwards")
-        .as_secs();
+    let hash = format!("{:x}", hasher.finalize());
+    // Aptabase server validates SessionId <= 36 chars, SHA-256 hex is 64
+    hash[..36].to_string()
+}
 
-    let mut rng = rand::rng();
-    let random: u64 = rng.random_range(0..=99999999);
-
-    let id = epoch_in_seconds * 100_000_000 + random;
-
-    id.to_string()
+/// Creates a deterministic session ID from machine ID, app key, and current UTC date.
+/// Same device + same app + same calendar day = same session ID.
+pub(crate) fn create_session_id(app_key: &str) -> String {
+    let machine_id = machine_uid::get().unwrap_or_else(|_| "unknown".to_string());
+    let today = OffsetDateTime::now_utc().date().to_string(); // e.g. "2026-02-13"
+    build_session_id(&machine_id, app_key, &today)
 }
 
 /// A tracking session.
 #[derive(Debug, Clone)]
 pub struct TrackingSession {
     pub id: String,
-    pub last_touch_ts: OffsetDateTime,
+    pub date: String,
 }
 
 impl TrackingSession {
-    fn new() -> Self {
+    fn new(app_key: &str) -> Self {
         Self {
-            id: new_session_id(),
-            last_touch_ts: OffsetDateTime::now_utc(),
+            id: create_session_id(app_key),
+            date: OffsetDateTime::now_utc().date().to_string(),
         }
     }
 }
@@ -48,6 +49,7 @@ impl TrackingSession {
 /// The Aptabase client used to track events.
 pub struct AptabaseClient {
     is_enabled: bool,
+    app_key: String,
     session: SyncMutex<TrackingSession>,
     dispatcher: Arc<EventDispatcher>,
     app_version: String,
@@ -64,8 +66,9 @@ impl AptabaseClient {
 
         Self {
             is_enabled,
+            app_key: config.app_key.clone(),
             dispatcher,
-            session: SyncMutex::new(TrackingSession::new()),
+            session: SyncMutex::new(TrackingSession::new(&config.app_key)),
             app_version,
             sys_info,
         }
@@ -83,15 +86,13 @@ impl AptabaseClient {
         });
     }
 
-    /// Returns the current session ID, creating a new one if necessary.
+    /// Returns the current session ID, rotating to a new one if the UTC date has changed.
     pub(crate) fn eval_session_id(&self) -> String {
         let mut session = self.session.lock().expect("could not lock events");
 
-        let now = OffsetDateTime::now_utc();
-        if (now - session.last_touch_ts) > SESSION_TIMEOUT {
-            *session = TrackingSession::new();
-        } else {
-            session.last_touch_ts = now;
+        let today = OffsetDateTime::now_utc().date().to_string();
+        if session.date != today {
+            *session = TrackingSession::new(&self.app_key);
         }
 
         session.id.clone()
@@ -146,3 +147,6 @@ impl AptabaseClient {
         });
     }
 }
+
+#[cfg(test)]
+mod tests;
