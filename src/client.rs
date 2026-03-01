@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::RngExt;
 use serde_json::{json, Value};
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{
