@@ -4,7 +4,7 @@ mod config;
 mod dispatcher;
 mod sys;
 
-use std::{panic::PanicInfo, sync::Arc, time::Duration};
+use std::{panic::PanicHookInfo, sync::Arc, time::Duration};
 
 use client::AptabaseClient;
 use config::Config;
@@ -28,9 +28,9 @@ pub struct Builder {
 }
 
 pub type PanicHook =
-    Box<dyn Fn(&AptabaseClient, &PanicInfo<'_>, String) + 'static + Sync + Send>;
+    Box<dyn Fn(&AptabaseClient, &PanicHookInfo<'_>, String) + 'static + Sync + Send>;
 
-fn get_panic_message(info: &PanicInfo) -> String {
+fn get_panic_message(info: &PanicHookInfo) -> String {
     let payload = info.payload();
     if let Some(s) = payload.downcast_ref::<&str>() {
         return s.to_string();
