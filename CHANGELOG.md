@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-08-11
+
+### Changed
+
+- Bump all Rust dependencies to latest versions (tauri 2.11.5, tokio 1.53.1, reqwest 0.13.4, rand 0.10.0, serde 1.0.229, serde_json 1.0.151, time 0.3.41, os_info 3.12.0, log 0.4.27, tauri-plugin 2.6.3)
+- Bump JavaScript dependencies (@tauri-apps/api ^2.10.1, @rollup/plugin-node-resolve ^16.0.3, @rollup/plugin-typescript ^12.3.0, @rollup/plugin-terser ^1.0.0, rollup ^4.57.1, typescript ^5.9.3)
+- Update `rust-version` to 1.81.0 (required for `PanicHookInfo`)
+- Update `rustls-tls` feature to use `reqwest/rustls` (reqwest 0.13 renamed the feature)
+- Clean up tsconfig.json: remove dead baseUrl/paths, switch to moduleResolution "bundler", add outDir
+- Remove hardcoded `moduleResolution: 'node'` from rollup config
+
+### Fixed
+
+- Fix `rand` 0.10 API change: `rand::Rng` → `rand::RngExt` in client.rs
+- Fix rollup build error: align tsconfig outDir with rollup output dir
+- Resolve issue #27: ENGINE_NAME not found on iOS — already fixed on main, this release publishes the fix to crates.io
+
 ## [1.1.0] - 2026-08-11
 
 ### Fixed

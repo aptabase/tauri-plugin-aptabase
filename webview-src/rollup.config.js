@@ -14,8 +14,7 @@ export default {
     nodeResolve(),
     terser(),
     typescript({
-      tsconfig: './webview-src/tsconfig.json',
-      moduleResolution: 'node'
+      tsconfig: './webview-src/tsconfig.json'
     })
   ]
 }
