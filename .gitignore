@@ -12,3 +12,4 @@ yarn.lock
 /target
 Cargo.lock
 node_modules/
+webview-dist/rollup.config.d.ts

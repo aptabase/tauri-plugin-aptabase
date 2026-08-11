@@ -4,13 +4,12 @@
     "strict": true,
     "allowJs": true,
     "esModuleInterop": true,
-    "baseUrl": ".",
-    "paths": {
-      "types": ["@types"]
-    },
+    "moduleResolution": "bundler",
     "declaration": true,
     "declarationDir": "../webview-dist",
+    "outDir": "../webview-dist",
     "rootDir": "./"
   },
-  "include": ["./"]
+  "include": ["./index.ts"],
+  "exclude": ["./rollup.config.js"]
 }
