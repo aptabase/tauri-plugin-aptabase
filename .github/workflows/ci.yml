@@ -13,7 +13,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Stop `mise run` installing tools beyond what mise-action installed
   MISE_TASK_RUN_AUTO_INSTALL: false
 
 jobs:
@@ -25,8 +24,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false }
       - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
-        with: { install_args: rust jactionlint shellcheck }
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with: { install_args: rust mr-boxington jactionlint shellcheck }
+      - uses: jdx/mr-boxington-action@47ce49b32025d93a7a2f4570815afaa2b7092240 # v1.7.2
       - run: mise run check
 
   check-example:
@@ -37,7 +36,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { persist-credentials: false }
       - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
-        with: { install_args: rust }
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
-        with: { workspaces: examples/helloworld }
+        with: { install_args: rust mr-boxington }
+      - uses: jdx/mr-boxington-action@47ce49b32025d93a7a2f4570815afaa2b7092240 # v1.7.2
+        with:
+          working-directory: examples/helloworld
+          cache-generation: example-v1
       - run: mise run example:check
