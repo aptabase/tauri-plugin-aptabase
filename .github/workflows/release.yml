@@ -50,18 +50,7 @@ jobs:
     steps:
       - *checkout
       - *install-tools
-      - run: mise run changelog:build-ignore-list
-      - id: git-cliff
-        uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
-        with:
-          version: v${{ steps.mise.outputs.git-cliff }}
-          args: --bump
-        env:
-          OUTPUT: CHANGELOG.md
-          GITHUB_REPO: ${{ github.repository }}
-      - env:
-          RELEASE_VERSION: ${{ steps.git-cliff.outputs.version }}
-        run: release-plz set-version "${RELEASE_VERSION#v}"
+      - run: mise run release:prepare
       - uses: release-plz/action@f393a7b38aca9d9b4c58447b291dbac963901df6 # v0.5.141
         with:
           version: ${{ steps.mise.outputs.release-plz }}
