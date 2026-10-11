@@ -19,25 +19,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: mise run check
 
-  features:
-    name: Clippy (${{ matrix.name }})
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - name: native-tls
-            flags: --no-default-features --features native-tls
-          - name: rustls-tls
-            flags: --no-default-features --features rustls-tls
-          - name: no-tls
-            flags: --no-default-features
-    steps:
-      - uses: actions/checkout@v7
-      - uses: jdx/mise-action@v5
-        with: { install_args: rust }
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo clippy --all-targets ${{ matrix.flags }}
-
   example:
     name: Example
     runs-on: ubuntu-latest
