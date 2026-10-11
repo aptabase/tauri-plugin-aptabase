@@ -5,50 +5,39 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Stop `mise run` installing tools beyond what mise-action installed
+  MISE_TASK_RUN_AUTO_INSTALL: false
+
 jobs:
   check:
-    name: Build & Check
+    name: Check
     runs-on: ubuntu-latest
-    env:
-      # Stop `mise run` installing tools beyond what mise-action installed
-      MISE_TASK_RUN_AUTO_INSTALL: false
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: jdx/mise-action@v5
-        with: { install_args: rust }
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
+        with: { install_args: rust jactionlint shellcheck }
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
       - run: mise run check
 
-  features:
-    name: Clippy (${{ matrix.name }})
+  check-example:
+    name: Check example
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - name: native-tls
-            flags: --no-default-features --features native-tls
-          - name: rustls-tls
-            flags: --no-default-features --features rustls-tls
-          - name: no-tls
-            flags: --no-default-features
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: jdx/mise-action@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with: { install_args: rust }
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo clippy --all-targets ${{ matrix.flags }}
-
-  example:
-    name: Example
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: examples/helloworld
-    steps:
-      - uses: actions/checkout@v7
-      - uses: jdx/mise-action@v5
-        with: { install_args: rust }
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with: { workspaces: examples/helloworld }
-      - run: cp .env.example .env
-      - run: cargo clippy --all-targets
+      - run: mise run example:check

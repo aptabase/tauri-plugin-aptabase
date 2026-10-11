@@ -1,33 +1,38 @@
-name: Release-plz
+name: Release
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # Stop `mise run` installing tools beyond what mise-action installed
+  MISE_TASK_RUN_AUTO_INSTALL: false
 
 jobs:
-  release-plz-release:
-    name: Release-plz release
-    runs-on: ubuntu-latest
+  release:
     if: ${{ github.repository_owner == 'eugencowie' }}
+    name: Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: write
     steps:
       - &checkout
-        name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: true
           token: ${{ secrets.RELEASE_PLZ_TOKEN }}
       - &install-tools
-        name: Install tools
         id: mise
-        uses: jdx/mise-action@v5
+        uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
           install_args: rust release-plz git-cliff
-      - name: Run release-plz
-        uses: release-plz/action@v0.5
+      - uses: release-plz/action@f393a7b38aca9d9b4c58447b291dbac963901df6 # v0.5.141
         with:
           version: ${{ steps.mise.outputs.release-plz }}
           command: release
@@ -35,38 +40,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-  release-plz-pr:
-    name: Release-plz PR
-    runs-on: ubuntu-latest
+  release-pr:
     if: ${{ github.repository_owner == 'eugencowie' }}
+    name: Release PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
-      pull-requests: write
       contents: write
-    concurrency:
-      group: release-plz-${{ github.ref }}
-      cancel-in-progress: false
+      pull-requests: write
     steps:
       - *checkout
       - *install-tools
-      # Keep in sync with the changelog task in mise.toml.
-      - name: Skip commits off the first-parent chain
-        shell: bash
-        run: comm -23 <(git rev-list HEAD | sort) <(git rev-list --first-parent HEAD | sort) > .cliffignore
-      - name: Generate changelog
-        id: git-cliff
-        uses: orhun/git-cliff-action@v4
+      - run: mise run changelog:build-ignore-list
+      - id: git-cliff
+        uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
         with:
           version: v${{ steps.mise.outputs.git-cliff }}
           args: --bump
         env:
           OUTPUT: CHANGELOG.md
           GITHUB_REPO: ${{ github.repository }}
-      - name: Set release version
-        env:
+      - env:
           RELEASE_VERSION: ${{ steps.git-cliff.outputs.version }}
         run: release-plz set-version "${RELEASE_VERSION#v}"
-      - name: Run release-plz
-        uses: release-plz/action@v0.5
+      - uses: release-plz/action@f393a7b38aca9d9b4c58447b291dbac963901df6 # v0.5.141
         with:
           version: ${{ steps.mise.outputs.release-plz }}
           command: release-pr
