@@ -30,7 +30,7 @@ jobs:
         id: mise
         uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
-          install_args: rust release-plz git-cliff
+          install_args: rust mr-boxington release-plz git-cliff
       - uses: release-plz/action@f393a7b38aca9d9b4c58447b291dbac963901df6 # v0.5.141
         with:
           version: ${{ steps.mise.outputs.release-plz }}
