@@ -6,6 +6,10 @@ release-plz = "latest"
 shellcheck = "latest"
 rust = { version = "1.88", components = ["clippy", "rustfmt"] } # the MSRV
 
+[tasks.build]
+description = "Build project"
+run = "cargo build"
+
 [tasks.test]
 description = "Run tests"
 run = "cargo test"
@@ -27,6 +31,35 @@ run = [
   "cargo clippy --all-targets",
   "cargo test"
 ]
+
+[tasks."example:build"]
+description = "Build example project"
+depends = ["example:copy-env"]
+dir = "examples/helloworld"
+run = "cargo build"
+
+[tasks."example:format"]
+description = "Fix formatting issues in example"
+dir = "examples/helloworld"
+run = "cargo fmt"
+
+[tasks."example:lint"]
+description = "Fix linting issues in example"
+depends = ["example:copy-env"]
+dir = "examples/helloworld"
+run = "cargo clippy --all-targets --fix --allow-dirty"
+
+[tasks."example:check"]
+description = "Check formatting and linting in example"
+depends = ["example:copy-env"]
+dir = "examples/helloworld"
+run = ["cargo fmt --check", "cargo clippy --all-targets"]
+
+[tasks."example:copy-env"]
+hide = true
+description = "Ensure .env is available at compile time"
+dir = "examples/helloworld"
+run = "test -f .env || cp .env.example .env"
 
 [tasks.changelog]
 description = "Update changelog"
