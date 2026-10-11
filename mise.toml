@@ -76,3 +76,17 @@ run = [
   "git cliff --bump -o CHANGELOG.md",
   'version=$(git cliff --bumped-version) && release-plz set-version "${version#v}"',
 ]
+
+[tasks."release:notes"]
+hide = true
+description = "Print a version's changelog section"
+usage = 'arg "<version>" help="Version, without a leading v"'
+quiet = true
+run = '''
+awk -v heading="## $usage_version" '
+  $0 == heading {in_section=1; next}
+  /^## / {in_section=0}
+  in_section {print; if (NF) found=1}
+  END {if (!found) {print "CHANGELOG.md has no " heading " section" > "/dev/stderr"; exit 1}}
+' CHANGELOG.md
+'''

@@ -53,4 +53,18 @@ jobs:
       - run: mise run release:prepare
       - env:
           GIT_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
-        run: release-plz release-pr
+          GH_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
+        run: |
+          out=$(release-plz release-pr -o json)
+          pr=$(jq -r '.prs[0].number // empty' <<< "$out")
+          [ -n "$pr" ] || exit 0
+          version=$(jq -r '.prs[0].releases[0].version' <<< "$out")
+          notes=$(mise run release:notes "$version")
+          # Fill the empty Changelog <details> in release-plz's default PR body
+          end='</p></details>'
+          body=$(gh pr view "$pr" --json body --jq .body)
+          if [[ "$body" != *"$end"* ]]; then
+            echo "::error::PR body has no $end to put the changelog before"
+            exit 1
+          fi
+          gh pr edit "$pr" --body "${body/"$end"/"$notes"$'\n\n'"$end"}"
