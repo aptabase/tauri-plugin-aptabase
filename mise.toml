@@ -1,8 +1,9 @@
 [tools]
-actionlint = "latest"
 gh = "latest"
 git-cliff = "latest"
+jactionlint = "latest"
 release-plz = "latest"
+shellcheck = "latest"
 rust = { version = "1.88", components = ["clippy", "rustfmt"] } # the MSRV
 
 [tasks.test]
