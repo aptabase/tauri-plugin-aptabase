@@ -63,13 +63,14 @@ run = "test -f .env || cp .env.example .env"
 
 [tasks.changelog]
 description = "Update changelog"
+depends = ["changelog:build-ignore-list"]
+run = "git cliff --bump"
+
+[tasks."changelog:build-ignore-list"]
+hide = true
+description = "Ignore commits off HEAD's first-parent chain (branch and upstream commits)"
 shell = "bash -c"
-run = [
-  # Skip commits off HEAD's first-parent chain (branch and upstream commits), so
-  # run this on main. Keep in sync with the release-pr job in release.yml.
-  "comm -23 <(git rev-list HEAD | sort) <(git rev-list --first-parent HEAD | sort) > .cliffignore",
-  "git cliff --bump"
-]
+run = "comm -23 <(git rev-list HEAD | sort) <(git rev-list --first-parent HEAD | sort) > .cliffignore"
 
 [tasks.release]
 description = "Update release versions and changelogs locally"

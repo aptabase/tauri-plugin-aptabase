@@ -8,6 +8,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  # Stop `mise run` installing tools beyond what mise-action installed
+  MISE_TASK_RUN_AUTO_INSTALL: false
+
 jobs:
   release:
     if: ${{ github.repository_owner == 'eugencowie' }}
@@ -47,9 +51,7 @@ jobs:
     steps:
       - *checkout
       - *install-tools
-      # Keep in sync with the changelog task in mise.toml.
-      - shell: bash
-        run: comm -23 <(git rev-list HEAD | sort) <(git rev-list --first-parent HEAD | sort) > .cliffignore
+      - run: mise run changelog:build-ignore-list
       - id: git-cliff
         uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
         with:
