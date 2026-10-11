@@ -9,21 +9,22 @@ jobs:
     if: ${{ github.repository_owner == 'eugencowie' }}
     name: Release
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: write
     steps:
       - &checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: true
           token: ${{ secrets.RELEASE_PLZ_TOKEN }}
       - &install-tools
         id: mise
-        uses: jdx/mise-action@v5
+        uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with:
           install_args: rust release-plz git-cliff
-      - uses: release-plz/action@v0.5
+      - uses: release-plz/action@f393a7b38aca9d9b4c58447b291dbac963901df6 # v0.5.141
         with:
           version: ${{ steps.mise.outputs.release-plz }}
           command: release
@@ -35,6 +36,7 @@ jobs:
     if: ${{ github.repository_owner == 'eugencowie' }}
     name: Release PR
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: write
       pull-requests: write
@@ -48,7 +50,7 @@ jobs:
       - shell: bash
         run: comm -23 <(git rev-list HEAD | sort) <(git rev-list --first-parent HEAD | sort) > .cliffignore
       - id: git-cliff
-        uses: orhun/git-cliff-action@v4
+        uses: orhun/git-cliff-action@a9a95522b26fe6403f7bb24031f21fb573d0f5ff # v4.9.1
         with:
           version: v${{ steps.mise.outputs.git-cliff }}
           args: --bump
@@ -58,7 +60,7 @@ jobs:
       - env:
           RELEASE_VERSION: ${{ steps.git-cliff.outputs.version }}
         run: release-plz set-version "${RELEASE_VERSION#v}"
-      - uses: release-plz/action@v0.5
+      - uses: release-plz/action@f393a7b38aca9d9b4c58447b291dbac963901df6 # v0.5.141
         with:
           version: ${{ steps.mise.outputs.release-plz }}
           command: release-pr
