@@ -24,13 +24,18 @@ run = "cargo clippy --all-targets --fix --allow-dirty"
 
 [tasks.check]
 description = "Check formatting, linting, and tests"
-depends = ["check:toolchain"]
+depends = ["check:toolchain", "check:workflows"]
 run = ["cargo fmt --check", "cargo clippy --all-targets", "cargo test"]
 
 [tasks."check:toolchain"]
 hide = true
 description = "Fail if the pinned toolchain has drifted from rust-version in Cargo.toml"
 run = 'grep -q "^rust-version = \"$(rustc -V | cut -d" " -f2 | cut -d. -f1,2)\"" Cargo.toml'
+
+[tasks."check:workflows"]
+hide = true
+description = "Check GitHub Actions workflows"
+run = "jactionlint"
 
 [tasks."example:build"]
 description = "Build example project"
