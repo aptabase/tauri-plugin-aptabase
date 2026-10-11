@@ -23,14 +23,14 @@ description = "Fix linting issues"
 run = "cargo clippy --all-targets --fix --allow-dirty"
 
 [tasks.check]
-description = "Check formatting/linting/tests"
-run = [
-  # Fail if the pinned toolchain has drifted from rust-version in Cargo.toml
-  'grep -q "^rust-version = \"$(rustc -V | cut -d" " -f2 | cut -d. -f1,2)\"" Cargo.toml',
-  "cargo fmt --check",
-  "cargo clippy --all-targets",
-  "cargo test"
-]
+description = "Check formatting, linting, and tests"
+depends = ["check:toolchain"]
+run = ["cargo fmt --check", "cargo clippy --all-targets", "cargo test"]
+
+[tasks."check:toolchain"]
+hide = true
+description = "Fail if the pinned toolchain has drifted from rust-version in Cargo.toml"
+run = 'grep -q "^rust-version = \"$(rustc -V | cut -d" " -f2 | cut -d. -f1,2)\"" Cargo.toml'
 
 [tasks."example:build"]
 description = "Build example project"
