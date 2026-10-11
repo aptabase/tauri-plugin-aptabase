@@ -2,9 +2,10 @@
 gh = "latest"
 git-cliff = "latest"
 jactionlint = "latest"
+mr-boxington = "latest"
 release-plz = "latest"
 shellcheck = "latest"
-rust = { version = "1.88", components = ["clippy", "rustfmt"] } # the MSRV
+rust = { version = "1.88", components = ["clippy", "rustfmt"], mr_boxington = true } # the MSRV
 
 [tasks.build]
 description = "Build project"
