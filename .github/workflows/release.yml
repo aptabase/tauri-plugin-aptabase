@@ -9,7 +9,6 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # Stop `mise run` installing tools beyond what mise-action installed
   MISE_TASK_RUN_AUTO_INSTALL: false
 
 jobs:
