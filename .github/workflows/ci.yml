@@ -7,7 +7,7 @@ on:
 
 jobs:
   check:
-    name: Build & Check
+    name: Check
     runs-on: ubuntu-latest
     env:
       # Stop `mise run` installing tools beyond what mise-action installed
@@ -19,8 +19,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: mise run check
 
-  example:
-    name: Example
+  check-example:
+    name: Check example
     runs-on: ubuntu-latest
     defaults:
       run:

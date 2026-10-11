@@ -1,33 +1,29 @@
-name: Release-plz
+name: Release
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  release-plz-release:
-    name: Release-plz release
-    runs-on: ubuntu-latest
+  release:
     if: ${{ github.repository_owner == 'eugencowie' }}
+    name: Release
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - &checkout
-        name: Checkout repository
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: true
           token: ${{ secrets.RELEASE_PLZ_TOKEN }}
       - &install-tools
-        name: Install tools
         id: mise
         uses: jdx/mise-action@v5
         with:
           install_args: rust release-plz git-cliff
-      - name: Run release-plz
-        uses: release-plz/action@v0.5
+      - uses: release-plz/action@v0.5
         with:
           version: ${{ steps.mise.outputs.release-plz }}
           command: release
@@ -35,13 +31,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-  release-plz-pr:
-    name: Release-plz PR
-    runs-on: ubuntu-latest
+  release-pr:
     if: ${{ github.repository_owner == 'eugencowie' }}
+    name: Release PR
+    runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
       contents: write
+      pull-requests: write
     concurrency:
       group: release-plz-${{ github.ref }}
       cancel-in-progress: false
@@ -49,11 +45,9 @@ jobs:
       - *checkout
       - *install-tools
       # Keep in sync with the changelog task in mise.toml.
-      - name: Skip commits off the first-parent chain
-        shell: bash
+      - shell: bash
         run: comm -23 <(git rev-list HEAD | sort) <(git rev-list --first-parent HEAD | sort) > .cliffignore
-      - name: Generate changelog
-        id: git-cliff
+      - id: git-cliff
         uses: orhun/git-cliff-action@v4
         with:
           version: v${{ steps.mise.outputs.git-cliff }}
@@ -61,12 +55,10 @@ jobs:
         env:
           OUTPUT: CHANGELOG.md
           GITHUB_REPO: ${{ github.repository }}
-      - name: Set release version
-        env:
+      - env:
           RELEASE_VERSION: ${{ steps.git-cliff.outputs.version }}
         run: release-plz set-version "${RELEASE_VERSION#v}"
-      - name: Run release-plz
-        uses: release-plz/action@v0.5
+      - uses: release-plz/action@v0.5
         with:
           version: ${{ steps.mise.outputs.release-plz }}
           command: release-pr
