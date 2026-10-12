@@ -21,14 +21,28 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { fetch-depth: 0, persist-credentials: true, token: "${{ secrets.RELEASE_PLZ_TOKEN }}" }
-      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
-        with: { install_args: rust mr-boxington release-plz git-cliff gh }
-      - uses: release-plz/git-config@59144859caf016f8b817a2ac9b051578729173c4 # v0.1.2
-        env: { GITHUB_TOKEN: "${{ secrets.RELEASE_PLZ_TOKEN }}" }
-      - run: mise run release:prepare
-      - run: |
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+          token: ${{ secrets.RELEASE_PLZ_TOKEN }}
+
+      - name: Install tools
+        uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
+        with:
+          install_args: rust mr-boxington release-plz git-cliff gh
+
+      - name: Configure git
+        uses: release-plz/git-config@59144859caf016f8b817a2ac9b051578729173c4 # v0.1.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
+
+      - name: Update changelog and version
+        run: mise run release:prepare
+
+      - name: Create or update release PR
+        run: |
           out=$(release-plz release-pr -o json)
           pr=$(jq -r '.prs[0].number // empty' <<< "$out")
           [ -n "$pr" ] || exit 0
@@ -53,11 +67,20 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with: { fetch-depth: 0, persist-credentials: true, token: "${{ secrets.RELEASE_PLZ_TOKEN }}" }
-      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
-        with: { install_args: rust mr-boxington release-plz }
-      - run: release-plz release
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+          token: ${{ secrets.RELEASE_PLZ_TOKEN }}
+
+      - name: Install tools
+        uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
+        with:
+          install_args: rust mr-boxington release-plz
+
+      - name: Publish release
+        run: release-plz release
         env:
           GIT_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
