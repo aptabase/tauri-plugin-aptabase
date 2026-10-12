@@ -1,5 +1,4 @@
 [changelog]
-output = "CHANGELOG.md"
 header = "# Changelog"
 body = """
 

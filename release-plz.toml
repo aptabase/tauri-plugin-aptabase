@@ -1,5 +1,8 @@
 [workspace]
 allow_dirty = true
+# git-cliff writes CHANGELOG.md, so release-plz leaves the changelog out of PR
+# and release bodies. release.yml's release-pr job and release-notes.yml fill
+# them in from CHANGELOG.md.
 changelog_update = false
 git_release_name = "{{ version }}"
 pr_name = "chore(release): Release {{ version }}"

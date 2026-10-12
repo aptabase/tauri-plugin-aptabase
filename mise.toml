@@ -67,17 +67,26 @@ description = "Ensure .env is available at compile time"
 dir = "examples/helloworld"
 run = "test -f .env || cp .env.example .env"
 
-[tasks.changelog]
-description = "Update changelog"
-depends = ["changelog:build-ignore-list"]
-run = "git cliff --bump"
-
-[tasks."changelog:build-ignore-list"]
-hide = true
-description = "Ignore commits off HEAD's first-parent chain (branch and upstream commits)"
+[tasks."release:prepare"]
+description = "Update CHANGELOG.md and Cargo.toml to the next version"
 shell = "bash -c"
-run = "comm -23 <(git rev-list HEAD | sort) <(git rev-list --first-parent HEAD | sort) > .cliffignore"
+run = [
+  # Ignore commits off HEAD's first-parent chain (branch and upstream commits)
+  "comm -23 <(git rev-list HEAD | sort) <(git rev-list --first-parent HEAD | sort) > .cliffignore",
+  "git cliff --bump -o CHANGELOG.md",
+  'version=$(git cliff --bumped-version) && release-plz set-version "${version#v}"',
+]
 
-[tasks.release]
-description = "Update release versions and changelogs locally"
-run = "release-plz update"
+[tasks."release:notes"]
+hide = true
+description = "Print a version's changelog section"
+usage = 'arg "<version>" help="Version, without a leading v"'
+quiet = true
+run = '''
+awk -v heading="## $usage_version" '
+  $0 == heading {in_section=1; next}
+  /^## / {in_section=0}
+  in_section {print; if (NF) found=1}
+  END {if (!found) {print "CHANGELOG.md has no " heading " section" > "/dev/stderr"; exit 1}}
+' CHANGELOG.md
+'''
