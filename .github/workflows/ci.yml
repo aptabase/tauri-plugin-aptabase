@@ -38,7 +38,5 @@ jobs:
       - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with: { install_args: rust mr-boxington }
       - uses: jdx/mr-boxington-action@47ce49b32025d93a7a2f4570815afaa2b7092240 # v1.7.2
-        with:
-          working-directory: examples/helloworld
-          cache-generation: example-v1
+        with: { working-directory: examples/helloworld, cache-generation: example-v1 }
       - run: mise run example:check
