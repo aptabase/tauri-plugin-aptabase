@@ -1,5 +1,10 @@
+# git-cliff ~ configuration file
+# https://git-cliff.org/docs/configuration
+
 [changelog]
+# Header template that will be rendered and added to the beginning of the changelog.
 header = "# Changelog"
+# A Tera template to be rendered for each release in the changelog.
 body = """
 
 {% if version %}\
@@ -16,30 +21,34 @@ body = """
     {% endfor %}
 {% endfor %}
 """
-postprocessors = [
-    { pattern = "\\(#([0-9]+)\\)", replace = "([#${1}](https://github.com/eugencowie/aptabase-rs/pull/${1}))" },
-]
 
 [git]
-filter_commits = true
+# Exclude tags that are not version-shaped.
 tag_pattern = "^v[0-9]"
+# An array of regex based parsers to modify commit messages prior to further processing.
+commit_preprocessors = [
+    # Replace issue numbers with link templates to be updated in `changelog.postprocessors`.
+    { pattern = '\(#([0-9]+)\)', replace = "([#${1}](https://github.com/eugencowie/git-vmr/pull/${1}))" },
+]
+# An array of regex based parsers for extracting data from the commit message.
 commit_parsers = [
-    { message = "^feat!?: .+ \\(#[0-9]+\\)", group = "<!-- 0 -->🚀 Features" },
-    { message = "^fix!?: .+ \\(#[0-9]+\\)", group = "<!-- 1 -->🐛 Bug Fixes" },
-    { message = "^docs?!?: .+ \\(#[0-9]+\\)", group = "<!-- 3 -->📚 Documentation" },
-    { message = "^perf!?: .+ \\(#[0-9]+\\)", group = "<!-- 4 -->⚡ Performance" },
-    { message = "^refactor!?: .+ \\(#[0-9]+\\)", group = "<!-- 2 -->🚜 Refactor" },
-    { message = "^style!?: .+ \\(#[0-9]+\\)", group = "<!-- 5 -->🎨 Styling" },
-    { message = "^test!?: .+ \\(#[0-9]+\\)", group = "<!-- 6 -->🧪 Testing" },
+    { message = "^feat", group = "<!-- 0 -->🚀 Features" },
+    { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
+    { message = "^doc", group = "<!-- 3 -->📚 Documentation" },
+    { message = "^perf", group = "<!-- 4 -->⚡ Performance" },
+    { message = "^refactor", group = "<!-- 2 -->🚜 Refactor" },
+    { message = "^style", group = "<!-- 5 -->🎨 Styling" },
+    { message = "^test", group = "<!-- 6 -->🧪 Testing" },
     { message = "^chore\\(release\\)", skip = true },
     { message = "^chore\\(deps.*\\)", skip = true },
     { message = "^chore\\(pr\\)", skip = true },
     { message = "^chore\\(pull\\)", skip = true },
-    { message = "^(chore|ci)!?: .+ \\(#[0-9]+\\)", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
-    { message = "^[a-z]+!?: .+ \\(#[0-9]+\\)", body = ".*security", group = "<!-- 8 -->🛡️ Security" },
-    { message = "^revert!?: .+ \\(#[0-9]+\\)", group = "<!-- 9 -->◀️ Revert" },
+    { message = "^chore|^ci", group = "<!-- 7 -->⚙️ Miscellaneous Tasks" },
+    { body = ".*security", group = "<!-- 8 -->🛡️ Security" },
+    { message = "^revert", group = "<!-- 9 -->◀️ Revert" },
+    { message = ".*", group = "<!-- 10 -->💼 Other" },
 ]
 
 [bump]
-# Breaking changes bump the minor version while pre-1.0
+# Breaking changes bump the minor version while pre-1.0.
 breaking_always_bump_major = false
