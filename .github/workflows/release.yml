@@ -12,6 +12,39 @@ env:
   MISE_TASK_RUN_AUTO_INSTALL: false
 
 jobs:
+  prepare-release:
+    if: ${{ github.repository_owner == 'eugencowie' }}
+    name: Prepare release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { fetch-depth: 0, persist-credentials: true, token: "${{ secrets.RELEASE_PLZ_TOKEN }}" }
+      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
+        with: { install_args: rust mr-boxington release-plz git-cliff gh }
+      - uses: release-plz/git-config@59144859caf016f8b817a2ac9b051578729173c4 # v0.1.2
+        env: { GITHUB_TOKEN: "${{ secrets.RELEASE_PLZ_TOKEN }}" }
+      - run: mise run release:prepare
+      - run: |
+          out=$(release-plz release-pr -o json)
+          pr=$(jq -r '.prs[0].number // empty' <<< "$out")
+          [ -n "$pr" ] || exit 0
+          body=$(gh pr view "$pr" --json body --jq .body)
+          end='</p></details>'
+          if [[ "$body" != *"$end"* ]]; then
+            echo "::error::PR body has no $end to put the changelog before"
+            exit 1
+          fi
+          version=$(jq -r '.prs[0].releases[0].version' <<< "$out")
+          notes=$(mise run release:notes "$version")
+          gh pr edit "$pr" --body "${body/"$end"/"$notes"$'\n\n'"$end"}"
+        env:
+          GIT_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
+
   release:
     if: ${{ github.repository_owner == 'eugencowie' }}
     name: Release
@@ -20,51 +53,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - &checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: true
-          token: ${{ secrets.RELEASE_PLZ_TOKEN }}
-      - &install-tools
-        uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
-        with:
-          install_args: rust mr-boxington release-plz git-cliff gh
-      - env:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { fetch-depth: 0, persist-credentials: true, token: "${{ secrets.RELEASE_PLZ_TOKEN }}" }
+      - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
+        with: { install_args: rust mr-boxington release-plz }
+      - run: release-plz release
+        env:
           GIT_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        run: release-plz release
-
-  release-pr:
-    if: ${{ github.repository_owner == 'eugencowie' }}
-    name: Release PR
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - *checkout
-      - *install-tools
-      # release-plz commits locally when it updates an existing release PR
-      - uses: release-plz/git-config@59144859caf016f8b817a2ac9b051578729173c4 # v0.1.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
-      - run: mise run release:prepare
-      - env:
-          GIT_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
-          GH_TOKEN: ${{ secrets.RELEASE_PLZ_TOKEN }}
-        run: |
-          out=$(release-plz release-pr -o json)
-          pr=$(jq -r '.prs[0].number // empty' <<< "$out")
-          [ -n "$pr" ] || exit 0
-          version=$(jq -r '.prs[0].releases[0].version' <<< "$out")
-          notes=$(mise run release:notes "$version")
-          # Fill the empty Changelog <details> in release-plz's default PR body
-          end='</p></details>'
-          body=$(gh pr view "$pr" --json body --jq .body)
-          if [[ "$body" != *"$end"* ]]; then
-            echo "::error::PR body has no $end to put the changelog before"
-            exit 1
-          fi
-          gh pr edit "$pr" --body "${body/"$end"/"$notes"$'\n\n'"$end"}"

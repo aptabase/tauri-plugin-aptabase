@@ -1,7 +1,5 @@
 name: Release notes
 
-# Fires for releases release-plz creates with RELEASE_PLZ_TOKEN. Events from
-# GitHub's own token don't trigger workflows, so this relies on that token.
 on:
   release:
     types: [published]
@@ -26,9 +24,9 @@ jobs:
         with: { persist-credentials: false }
       - uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
         with: { install_args: gh, cache: false }
-      - env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
-        run: |
+      - run: |
           notes=$(mise run release:notes "${TAG#v}")
           gh release edit "$TAG" --notes "$notes"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
