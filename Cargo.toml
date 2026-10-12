@@ -1,6 +1,6 @@
 [package]
 name = "aptabase-rs"
-version = "0.3.0"
+version = "0.3.1"
 license = "MIT"
 description = "Rust SDK for Aptabase: Open Source, Privacy-First and Simple Analytics for Mobile, Desktop and Web Apps"
 authors = ["Eugén Cowie"]
