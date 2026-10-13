@@ -28,7 +28,7 @@ tag_pattern = "^v[0-9]"
 # An array of regex based parsers to modify commit messages prior to further processing.
 commit_preprocessors = [
     # Replace issue numbers with link templates to be updated in `changelog.postprocessors`.
-    { pattern = '\(#([0-9]+)\)', replace = "([#${1}](https://github.com/eugencowie/git-vmr/pull/${1}))" },
+    { pattern = '\(#([0-9]+)\)', replace = "([#${1}](https://github.com/eugencowie/aptabase-rs/pull/${1}))" },
 ]
 # An array of regex based parsers for extracting data from the commit message.
 commit_parsers = [
