@@ -147,11 +147,21 @@ tauri::Builder::default()
 - `host` — required only for self-hosted Aptabase instances (app keys starting with `A-SH-*`)
 - `flush_interval` — defaults to 60s in release, 2s in debug mode
 - Events are batched and flushed periodically; `flush_events_blocking()` forces an immediate flush
+- Up to 25 events per request; network failures and 5xx responses keep the events queued for the next flush, other unsuccessful responses drop them
+- Requests use the system proxy settings (macOS, Windows) and the `HTTP_PROXY` / `HTTPS_PROXY` / `ALL_PROXY` / `NO_PROXY` environment variables
+
+## TLS Backend
+
+Cargo features choose the TLS backend: `default-tls` (default, rustls), `rustls-tls`, or `native-tls` (OpenSSL on Linux and Android). To switch, turn off the default features:
+
+```toml
+tauri-plugin-aptabase = { version = "1.2", default-features = false, features = ["native-tls"] }
+```
 
 ## Platform Notes
 
 - Requires Tauri v2 (2.x)
-- Rust edition 2021, MSRV 1.70
+- Rust edition 2021, MSRV 1.85
 - The `EventTracker` trait is implemented for `App`, `AppHandle`, and `Window`
 - The JS `trackEvent` is async but you don't need to await it
 - A custom panic hook can be set via `Builder::with_panic_hook()` to track crashes

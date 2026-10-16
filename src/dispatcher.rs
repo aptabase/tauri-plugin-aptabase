@@ -123,3 +123,176 @@ impl EventDispatcher {
         self.enqueue_many(failed_items);
     }
 }
+
+// Delivery end to end: events tracked on a client and flushed to a local server.
+#[cfg(test)]
+mod tests {
+    use std::{
+        net::TcpListener,
+        time::{Duration, Instant},
+    };
+
+    use serde_json::{json, Value};
+    use tauri::async_runtime::block_on;
+    use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+
+    use crate::{
+        client::AptabaseClient,
+        config::Config,
+        test_server::{server, server_on, Server},
+        InitOptions,
+    };
+
+    const APP_KEY: &str = "A-SH-0000000000";
+
+    fn client(base: &str) -> AptabaseClient {
+        let options = InitOptions {
+            host: Some(base.into()),
+            flush_interval: None,
+        };
+        AptabaseClient::new(&Config::new(APP_KEY.into(), options), "1.4.0".into())
+    }
+
+    /// The event names in each request the server got.
+    fn batches(server: &Server) -> Vec<Vec<String>> {
+        let requests = server.requests.lock().unwrap();
+        requests
+            .iter()
+            .map(|(_, body)| {
+                let events = body.as_array().unwrap();
+                events
+                    .iter()
+                    .map(|event| event["eventName"].as_str().unwrap().to_string())
+                    .collect()
+            })
+            .collect()
+    }
+
+    fn keys(value: &Value) -> Vec<&str> {
+        let mut keys: Vec<&str> = value
+            .as_object()
+            .unwrap()
+            .keys()
+            .map(String::as_str)
+            .collect();
+        keys.sort();
+        keys
+    }
+
+    #[test]
+    fn events_go_out_in_batches_of_25() {
+        let server = server(&[200, 200, 200]);
+        let client = client(&server.base);
+        for i in 0..60 {
+            client.track_event(&format!("event_{i}"), None).unwrap();
+        }
+        block_on(client.flush());
+        let sizes: Vec<usize> = batches(&server).iter().map(Vec::len).collect();
+        assert_eq!(sizes, [25, 25, 10]);
+    }
+
+    #[test]
+    fn a_server_error_keeps_the_events_for_the_next_flush() {
+        let server = server(&[503, 200]);
+        let client = client(&server.base);
+        client.track_event("app_started", None).unwrap();
+        client.track_event("app_exited", None).unwrap();
+        block_on(client.flush());
+        block_on(client.flush());
+        assert_eq!(
+            batches(&server),
+            [["app_started", "app_exited"], ["app_started", "app_exited"]]
+        );
+    }
+
+    #[test]
+    fn a_network_failure_keeps_the_events_for_the_next_flush() {
+        let addr = TcpListener::bind("127.0.0.1:0")
+            .unwrap()
+            .local_addr()
+            .unwrap();
+        let client = client(&format!("http://{addr}"));
+        client.track_event("app_started", None).unwrap();
+        // Nothing listens on the port yet: the connection is refused.
+        block_on(client.flush());
+        let server = server_on(TcpListener::bind(addr).unwrap(), &[200]);
+        block_on(client.flush());
+        assert_eq!(batches(&server), [["app_started"]]);
+    }
+
+    #[test]
+    fn a_client_error_drops_the_events() {
+        let server = server(&[400, 200]);
+        let client = client(&server.base);
+        client.track_event("app_started", None).unwrap();
+        block_on(client.flush());
+        block_on(client.flush());
+        assert_eq!(batches(&server), [["app_started"]]);
+    }
+
+    #[test]
+    fn events_are_sent_in_the_aptabase_format() {
+        let server = server(&[200]);
+        let client = client(&server.base);
+        let props = json!({ "plan": "pro", "seats": 3 });
+        client
+            .track_event("app_started", Some(props.clone()))
+            .unwrap();
+        block_on(client.flush());
+
+        let requests = server.requests.lock().unwrap();
+        let (app_key, body) = &requests[0];
+        assert_eq!(app_key, APP_KEY);
+        let event = &body[0];
+        assert_eq!(
+            keys(event),
+            [
+                "eventName",
+                "props",
+                "sessionId",
+                "systemProps",
+                "timestamp"
+            ]
+        );
+        assert_eq!(event["eventName"], "app_started");
+        assert_eq!(event["props"], props);
+        assert!(!event["sessionId"].as_str().unwrap().is_empty());
+        OffsetDateTime::parse(event["timestamp"].as_str().unwrap(), &Rfc3339).unwrap();
+
+        let system = &event["systemProps"];
+        assert_eq!(
+            keys(system),
+            [
+                "appVersion",
+                "engineName",
+                "engineVersion",
+                "isDebug",
+                "locale",
+                "osName",
+                "osVersion",
+                "sdkVersion"
+            ]
+        );
+        assert_eq!(system["appVersion"], "1.4.0");
+        assert_eq!(
+            system["sdkVersion"],
+            concat!("tauri-plugin-aptabase@", env!("CARGO_PKG_VERSION"))
+        );
+        assert_eq!(system["isDebug"], cfg!(debug_assertions));
+    }
+
+    #[test]
+    fn polling_flushes_without_a_manual_flush() {
+        let server = server(&[200]);
+        let client = client(&server.base);
+        client.start_polling(Duration::from_millis(50));
+        client.track_event("app_started", None).unwrap();
+        let started = Instant::now();
+        while server.requests.lock().unwrap().is_empty()
+            && started.elapsed() < Duration::from_secs(5)
+        {
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        assert_eq!(batches(&server), [["app_started"]]);
+    }
+}
