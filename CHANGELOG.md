@@ -5,17 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.3.0] - 2026-10-16
+
+JavaScript bindings: `@aptabase/tauri` 0.7.0.
+
+### Added
+
+- Error reporting (beta), to the error endpoint (`/api/v0/error`); reports appear on the Errors page of the dashboard
+- `ErrorTracker` trait on `App`, `AppHandle` and `Window`: `track_error(&err)` reports any `std::error::Error` with its type name and causes, and `track_error_report(ErrorReport)` reports one described field by field (`ErrorReport::with_fatal` for severity `fatal`)
+- `trackError(error, { fatal })` in the JavaScript bindings, with the `aptabase:allow-track-error` permission
+- `Builder::with_crash_reporting()`: a panic on the main thread is reported as a fatal `crash` (the app waits up to three seconds for the report before it exits), one in an async task as a `taskException` and one on another thread as `unhandled`; the webview's uncaught errors and unhandled promise rejections are reported too
+- Reports are sent right away, one per request, with the same retry rules as the other SDKs: network errors, 408, 429 and 5xx are retried, a 403 (monthly error quota exhausted) and other 4xx are dropped; at most 25 wait for delivery
+- Tests for event delivery (batches of 25, what's kept for the next flush and what's dropped, the event format, polling) and for App Key validation, run in CI
+- README sections on delivery and on the TLS backend features
 
 ### Fixed
 
 - Use the system proxy settings on macOS and Windows again. Turning off reqwest's default features to add the TLS feature flags (#34) also turned off its `system-proxy`, `http2` and `charset` features; they're back on, and the TLS backend is still chosen with `default-tls`, `rustls-tls` or `native-tls`
 - `rust-version` is 1.85.0: reqwest 0.13 and rand 0.10 don't build on 1.81
-
-### Added
-
-- Tests for event delivery (batches of 25, what's kept for the next flush and what's dropped, the event format, polling) and for App Key validation, run in CI
-- README sections on delivery and on the TLS backend features
+- `flush_events_blocking()`, and the flush after a custom panic hook, panicked with "there is no reactor running" when events were queued and the calling thread was outside Tauri's async runtime (the main thread handling `RunEvent::Exit`, as the README shows); the flush now runs on the runtime
 
 ## [1.2.0] - 2026-08-11
 

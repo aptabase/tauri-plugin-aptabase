@@ -20,7 +20,7 @@ pub fn run() {
             client.track_event("panic", Some(json!({
                 "info": format!("{} ({})", msg, location),
             })));
-        })).build())
+        })).with_crash_reporting().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -295,6 +295,18 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "Enables the track_error command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-track-error",
+          "markdownDescription": "Enables the track_error command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the track_error command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-track-error",
+          "markdownDescription": "Denies the track_error command without any pre-configured scope."
+        },
+        {
           "description": "Enables the track_event command without any pre-configured scope.",
           "type": "string",
           "const": "allow-track-event",

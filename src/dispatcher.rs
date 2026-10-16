@@ -22,25 +22,26 @@ pub(crate) struct EventDispatcher {
     http_client: reqwest::Client,
 }
 
+/// How events and error reports are sent: the App Key, JSON, and a User-Agent describing the system.
+pub(crate) fn http_client(config: &Config, sys: &SystemProperties) -> reqwest::ClientBuilder {
+    let mut headers = HeaderMap::new();
+    let app_key_header = HeaderValue::from_str(config.app_key.as_str())
+        .expect("failed to define App Key header value");
+    headers.insert("App-Key", app_key_header);
+    headers.insert("Content-Type", HeaderValue::from_static("application/json"));
+
+    let user_agent = format!(
+        "{}/{} {}/{} {}",
+        sys.os_name, sys.os_version, sys.engine_name, sys.engine_version, sys.locale
+    );
+    reqwest::Client::builder()
+        .timeout(HTTP_REQUEST_TIMEOUT)
+        .default_headers(headers)
+        .user_agent(user_agent)
+}
+
 impl EventDispatcher {
-    pub fn new(config: &Config, sys: &SystemProperties) -> Self {
-        let mut headers = HeaderMap::new();
-        let app_key_header = HeaderValue::from_str(config.app_key.as_str())
-            .expect("failed to define App Key header value");
-        headers.insert("App-Key", app_key_header);
-        headers.insert("Content-Type", HeaderValue::from_static("application/json"));
-
-        let user_agent = format!(
-            "{}/{} {}/{} {}",
-            sys.os_name, sys.os_version, sys.engine_name, sys.engine_version, sys.locale
-        );
-        let http_client = reqwest::Client::builder()
-            .timeout(HTTP_REQUEST_TIMEOUT)
-            .default_headers(headers)
-            .user_agent(user_agent)
-            .build()
-            .expect("could not build http client");
-
+    pub fn new(config: &Config, http_client: reqwest::Client) -> Self {
         let queue = Arc::new(RwLock::new(VecDeque::new()));
 
         Self {

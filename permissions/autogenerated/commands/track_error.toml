@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-track-error"
+description = "Enables the track_error command without any pre-configured scope."
+commands.allow = ["track_error"]
+
+[[permission]]
+identifier = "deny-track-error"
+description = "Denies the track_error command without any pre-configured scope."
+commands.deny = ["track_error"]
