@@ -3,6 +3,7 @@
     "description": "Capability for the main window",
     "windows": ["main"],
     "permissions": [
-      "aptabase:allow-track-event"
+      "aptabase:allow-track-event",
+      "aptabase:allow-track-error"
     ]
   }

@@ -1,7 +1,7 @@
 //! A local HTTP server for tests: it answers each request with the next status it was given and keeps what it was
 //! sent (the App-Key header and the JSON body). A status of 0 never answers: the request stays in flight.
 
-// Not every test uses all of it.
+// Shared with the integration tests, which don't use all of it.
 #![allow(dead_code)]
 
 use std::{
@@ -10,12 +10,15 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use reqwest::Url;
 use serde_json::Value;
 
 /// A server that answers each request with the next status in `statuses`, keeping what it was sent.
 pub(crate) struct Server {
     /// Where it listens, e.g. `http://127.0.0.1:50211`.
     pub base: String,
+    /// Its error endpoint.
+    pub url: Url,
     pub requests: Arc<Mutex<Vec<(String, Value)>>>,
 }
 
@@ -26,6 +29,7 @@ pub(crate) fn server(statuses: &[u16]) -> Server {
 /// [`server`] on a listener the test bound itself, e.g. on a port an earlier request found closed.
 pub(crate) fn server_on(listener: TcpListener, statuses: &[u16]) -> Server {
     let base = format!("http://{}", listener.local_addr().unwrap());
+    let url = format!("{base}/api/v0/error").parse().unwrap();
     let requests = Arc::new(Mutex::new(Vec::new()));
     let seen = requests.clone();
     let statuses = statuses.to_vec();
@@ -66,5 +70,9 @@ pub(crate) fn server_on(listener: TcpListener, statuses: &[u16]) -> Server {
         std::thread::sleep(std::time::Duration::from_secs(60));
         drop(unanswered);
     });
-    Server { base, requests }
+    Server {
+        base,
+        url,
+        requests,
+    }
 }

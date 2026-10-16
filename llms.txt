@@ -36,7 +36,7 @@ In `src-tauri/Cargo.toml`:
 
 ```toml
 [dependencies]
-tauri-plugin-aptabase = "1.0.0"
+tauri-plugin-aptabase = "1.3.0"
 ```
 
 ### 2. Add the JS package (optional, for webview tracking)
@@ -61,11 +61,11 @@ async fn main() {
 
 ### 4. Add ACL permission
 
-Add `aptabase:allow-track-event` to your Tauri capabilities to allow the JS API to send events. In your `src-tauri/capabilities/*.json`:
+Add `aptabase:allow-track-event` to your Tauri capabilities to allow the JS API to send events, and `aptabase:allow-track-error` to report errors. In your `src-tauri/capabilities/*.json`:
 
 ```json
 {
-  "permissions": ["aptabase:allow-track-event"]
+  "permissions": ["aptabase:allow-track-event", "aptabase:allow-track-error"]
 }
 ```
 
@@ -125,6 +125,45 @@ trackEvent("screen_view", { name: "Settings" });
 trackEvent("purchase", { plan: "pro", price: 9.99 });
 ```
 
+## Error Reporting (beta)
+
+Reports appear on the `Errors` page of the Aptabase dashboard. Errors count against a separate monthly error quota.
+
+Report a handled error from Rust with the `ErrorTracker` trait (implemented for `App`, `AppHandle`, and `Window`):
+
+```rust
+use tauri_plugin_aptabase::{ErrorReport, ErrorTracker};
+
+app.track_error(&err); // any std::error::Error: its type name, message and causes
+app.track_error_report(ErrorReport::from_error(&err).with_fatal(true)); // severity: fatal
+app.track_error_report(ErrorReport::new("SyncConflict", "two devices edited the same note"));
+```
+
+Report a handled error from JavaScript (needs the `aptabase:allow-track-error` permission):
+
+```js
+import { trackError } from "@aptabase/tauri";
+
+try {
+  await saveSettings();
+} catch (error) {
+  trackError(error); // severity: error
+  // trackError(error, { fatal: true }) for errors the app can't recover from
+}
+```
+
+Report crashes and uncaught errors automatically:
+
+```rust
+tauri::Builder::default()
+    .plugin(tauri_plugin_aptabase::Builder::new("<YOUR_APP_KEY>").with_crash_reporting().build())
+```
+
+- A panic on the main thread is a fatal `crash`; the app waits up to 3 seconds for the report before it exits
+- A panic in an async command or a task on Tauri's async runtime is a `taskException`; one on another thread is `unhandled` (both severity `error`)
+- The webview's uncaught errors (`unhandled`) and unhandled promise rejections (`taskException`) are reported too, with the `aptabase:allow-track-error` permission
+- Reports are sent immediately, one per request; network errors, 408, 429 and 5xx are retried, a 403 (quota exhausted) is dropped
+
 ## Configuration
 
 The `Builder` accepts optional `InitOptions`:
@@ -155,7 +194,7 @@ tauri::Builder::default()
 Cargo features choose the TLS backend: `default-tls` (default, rustls), `rustls-tls`, or `native-tls` (OpenSSL on Linux and Android). To switch, turn off the default features:
 
 ```toml
-tauri-plugin-aptabase = { version = "1.2", default-features = false, features = ["native-tls"] }
+tauri-plugin-aptabase = { version = "1.3", default-features = false, features = ["native-tls"] }
 ```
 
 ## Platform Notes
@@ -164,7 +203,7 @@ tauri-plugin-aptabase = { version = "1.2", default-features = false, features = 
 - Rust edition 2021, MSRV 1.85
 - The `EventTracker` trait is implemented for `App`, `AppHandle`, and `Window`
 - The JS `trackEvent` is async but you don't need to await it
-- A custom panic hook can be set via `Builder::with_panic_hook()` to track crashes
+- `Builder::with_crash_reporting()` reports panics and the webview's uncaught errors; a custom panic hook can still be set via `Builder::with_panic_hook()`
 
 ## Cross-Discovery
 

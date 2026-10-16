@@ -12,7 +12,7 @@ Install the Core plugin by adding the following to your `Cargo.toml` file:
 
 ```toml
 [dependencies]
-tauri-plugin-aptabase = "1.0.0"
+tauri-plugin-aptabase = "1.3.0"
 ```
 
 ```toml
@@ -94,6 +94,59 @@ A few important notes:
 3. You do not need to await for the `trackEvent` function, it'll run in the background.
 3. Only strings and numbers values are allowed on custom properties
 
+## Error Reporting
+
+> Error reporting is in beta. Reports appear on the `Errors` page of your Aptabase dashboard.
+
+Use `track_error` to report errors you've caught and handled in Rust, through the `tauri_plugin_aptabase::ErrorTracker` trait on `App`, `AppHandle` or `Window`:
+
+```rust
+use tauri_plugin_aptabase::ErrorTracker;
+
+if let Err(err) = std::fs::read_to_string("settings.json") {
+    app.track_error(&err); // severity: error
+}
+```
+
+The `trackError` function does the same from JavaScript. Add `aptabase:allow-track-error` to your Access Control List first:
+
+```js
+import { trackError } from "@aptabase/tauri";
+
+try {
+  await saveSettings();
+} catch (error) {
+  trackError(error); // severity: error
+}
+```
+
+For errors your app can't recover from, mark the report as fatal:
+
+```js
+trackError(error, { fatal: true }); // severity: fatal
+```
+
+```rust
+use tauri_plugin_aptabase::{ErrorReport, ErrorTracker};
+
+app.track_error_report(ErrorReport::from_error(&err).with_fatal(true)); // severity: fatal
+```
+
+To also report crashes and uncaught errors automatically, enable crash reporting when you register the plugin:
+
+```rust
+tauri::Builder::default()
+    .plugin(tauri_plugin_aptabase::Builder::new("<YOUR_APP_KEY>").with_crash_reporting().build())
+```
+
+A few important notes about error reporting:
+
+1. A panic on the main thread ends your app: it's reported as a fatal `crash`, and the app waits up to three seconds for the report to be sent before it exits. A panic in an async command or a task on Tauri's async runtime ends only that task (`taskException`), and one on a thread of your own ends only that thread (`unhandled`): both are reported with severity `error`. A hook set with `with_panic_hook` still runs.
+2. With crash reporting on, the webview's uncaught errors (`unhandled`) and unhandled promise rejections (`taskException`) are reported too. This needs the `aptabase:allow-track-error` permission.
+3. Each report includes the error type, message, stack trace, severity (`error` or `fatal`) and how it was captured (`handled`, `unhandled`, `taskException` or `crash`). A Rust error is reported with its type name and the errors that caused it; a panic with its location and a backtrace.
+4. Errors count against a separate monthly error quota. When it is exhausted, the server rejects new reports until it resets, and the plugin drops them instead of retrying.
+5. Crashes that don't go through Rust's panic handler (a segfault or an abort in native code) aren't captured.
+
 ## Providing the APTABASE_KEY via .env
 
 It's possible to load the APTABASE_KEY from a .env file at compile time using the `dotenvy_macro` crate. The `.env` file needs to be
@@ -151,7 +204,7 @@ To switch backend, turn off the default features:
 
 ```toml
 [dependencies]
-tauri-plugin-aptabase = { version = "1.2", default-features = false, features = ["native-tls"] }
+tauri-plugin-aptabase = { version = "1.3", default-features = false, features = ["native-tls"] }
 ```
 
 Neither `default-tls` nor `rustls-tls` needs OpenSSL, so you can cross-compile for Android and Linux without it.

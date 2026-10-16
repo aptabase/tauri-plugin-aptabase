@@ -9,6 +9,7 @@ use crate::InitOptions;
 pub struct Config {
     pub app_key: String,
     pub ingest_api_url: Url,
+    pub error_api_url: Url,
     pub flush_interval: Duration,
 }
 
@@ -53,6 +54,7 @@ impl Config {
         Self {
             app_key,
             ingest_api_url: format!("{}/api/v0/events", base_url).parse().unwrap(),
+            error_api_url: format!("{}/api/v0/error", base_url).parse().unwrap(),
             flush_interval: opts.flush_interval.unwrap_or(DEFAULT_FLUSH_INTERVAL),
         }
     }
@@ -63,6 +65,7 @@ impl Default for Config {
         Self {
             app_key: String::new(),
             ingest_api_url: Url::parse(LOCAL).unwrap(),
+            error_api_url: Url::parse(LOCAL).unwrap(),
             flush_interval: DEFAULT_FLUSH_INTERVAL,
         }
     }
