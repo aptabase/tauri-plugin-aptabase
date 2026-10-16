@@ -126,4 +126,34 @@ pub fn run() {
 }
 ```
 
+## Delivery
+
+Events are queued in memory and sent in the background: every 60 seconds in release builds and every 2 seconds in debug builds (set `flush_interval` in `InitOptions` to change it), and whenever you call `flush_events_blocking()`.
+
+- Each request carries up to 25 events.
+- If a request doesn't reach the server (no network, a timeout) or the server answers with a 5xx status, its events stay queued for the next flush.
+- If the server answers with any other unsuccessful status, such as a 4xx, its events are dropped.
+- The queue isn't saved to disk.
+
+Requests use the system proxy settings on macOS and Windows, and the `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and `NO_PROXY` environment variables on every platform.
+
+## TLS backends
+
+The plugin sends events with [reqwest](https://crates.io/crates/reqwest). You choose its TLS backend with one of these Cargo features:
+
+| Feature | Backend |
+| --- | --- |
+| `default-tls` (default) | reqwest's default backend, currently [rustls](https://crates.io/crates/rustls) |
+| `rustls-tls` | rustls |
+| `native-tls` | The platform's TLS library: OpenSSL on Linux and Android, Security.framework on Apple platforms, SChannel on Windows |
+
+To switch backend, turn off the default features:
+
+```toml
+[dependencies]
+tauri-plugin-aptabase = { version = "1.2", default-features = false, features = ["native-tls"] }
+```
+
+Neither `default-tls` nor `rustls-tls` needs OpenSSL, so you can cross-compile for Android and Linux without it.
+
 For AI/LLM integration instructions, see [llms.txt](./llms.txt)

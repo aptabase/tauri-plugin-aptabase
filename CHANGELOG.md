@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Use the system proxy settings on macOS and Windows again. Turning off reqwest's default features to add the TLS feature flags (#34) also turned off its `system-proxy`, `http2` and `charset` features; they're back on, and the TLS backend is still chosen with `default-tls`, `rustls-tls` or `native-tls`
+- `rust-version` is 1.85.0: reqwest 0.13 and rand 0.10 don't build on 1.81
+
+### Added
+
+- Tests for event delivery (batches of 25, what's kept for the next flush and what's dropped, the event format, polling) and for App Key validation, run in CI
+- README sections on delivery and on the TLS backend features
+
 ## [1.2.0] - 2026-08-11
 
 ### Changed

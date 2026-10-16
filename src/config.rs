@@ -67,3 +67,42 @@ impl Default for Config {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn options(host: Option<&str>) -> InitOptions {
+        InitOptions {
+            host: host.map(Into::into),
+            flush_interval: None,
+        }
+    }
+
+    #[test]
+    fn a_self_hosted_app_key_sends_to_its_host() {
+        let config = Config::new(
+            "A-SH-0000000000".into(),
+            options(Some("http://127.0.0.1:8000")),
+        );
+        assert_eq!(config.app_key, "A-SH-0000000000");
+        assert_eq!(
+            config.ingest_api_url.as_str(),
+            "http://127.0.0.1:8000/api/v0/events"
+        );
+    }
+
+    // An empty App Key is what turns tracking off: the client drops every event it is given.
+    #[test]
+    fn an_invalid_app_key_turns_tracking_off() {
+        let host = Some("http://127.0.0.1:8000");
+        for (app_key, host) in [
+            ("A-XX-0000000000", host),
+            ("not-an-app-key", host),
+            ("A-SH-0000000000", None),
+        ] {
+            let config = Config::new(app_key.into(), options(host));
+            assert_eq!(config.app_key, "", "{app_key} with host {host:?}");
+        }
+    }
+}

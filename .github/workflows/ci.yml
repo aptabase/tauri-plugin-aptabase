@@ -29,3 +29,18 @@ jobs:
 
       - name: Check Rust
         run: cargo check
+
+      - name: Test Rust
+        run: cargo test
+
+      # The rustls backends exist so apps can build for Linux and Android without OpenSSL (#34).
+      - name: Check rustls builds don't pull in OpenSSL
+        run: |
+          for target in x86_64-unknown-linux-gnu aarch64-linux-android; do
+            for features in "" "--no-default-features --features rustls-tls"; do
+              if cargo tree -e normal --target "$target" $features --prefix none | grep -E '^(openssl-sys|native-tls) '; then
+                echo "::error::OpenSSL in the dependency tree for $target ${features:-(default features)}"
+                exit 1
+              fi
+            done
+          done
