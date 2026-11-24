@@ -1,0 +1,60 @@
+name: Mobile builds
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: Android
+            runner: ubuntu-24.04
+            rust-target: aarch64-linux-android
+          - platform: iOS
+            runner: macos-latest
+            rust-target: aarch64-apple-ios-sim
+    name: ${{ matrix.platform }} example
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-target }}
+
+      - name: Build plugin JavaScript
+        run: npm install && npm run build
+
+      - name: Install example dependencies
+        working-directory: examples/helloworld
+        run: npm install
+
+      - uses: actions/setup-java@v5
+        if: matrix.platform == 'Android'
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Build Android APK
+        if: matrix.platform == 'Android'
+        working-directory: examples/helloworld
+        run: |
+          export NDK_HOME="$ANDROID_NDK_LATEST_HOME"
+          npm run tauri -- android init --ci --skip-targets-install
+          npm run tauri -- android build --ci --debug --apk --target aarch64
+
+      - name: Build iOS simulator app
+        if: matrix.platform == 'iOS'
+        working-directory: examples/helloworld
+        run: |
+          npm run tauri -- ios init --ci --skip-targets-install
+          npm run tauri -- ios build --ci --debug --target aarch64-sim --no-sign
